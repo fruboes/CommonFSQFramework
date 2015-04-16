@@ -1,4 +1,11 @@
+
+
+// note: workaround for CMSSW_4_2_8_lowpupatch1
+#include "RVersion.h"
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,28,0)
 #include "FWCore/Utilities/interface/GCC11Compatibility.h"
+#endif
+
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 #include "TH1.h"
 #include "TFile.h"
