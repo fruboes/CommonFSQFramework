@@ -263,7 +263,7 @@ reco::Candidate::LorentzVector JetView::shiftJEC(const reco::Candidate::LorentzV
     }
 
     m_jecUnc->setJetEta(rec.eta());
-    m_jecUnc->setJetPt(rec.eta());
+    m_jecUnc->setJetPt(rec.pt());
     float unc = m_jecUnc->getUncertainty(true);
     float ptFactor = 1.;
     if (variation == "jecDown") ptFactor = -1;
