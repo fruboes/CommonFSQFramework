@@ -114,7 +114,7 @@ sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["lumiDiJet15FB"]='crashMeMC'
 sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["pathTrees"]='/XXXTMFTTree/store/user/fruboes/QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/DiJet_20150416_MN2010_QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/41b5c484f0a77c11d9ec582d0ce99b4d//'
 sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["XS"]=16953200000.0
 sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["pathPAT"]='/XXXTMFPAT/store/user/fruboes/QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/DiJet_20150416_MN2010_QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/41b5c484f0a77c11d9ec582d0ce99b4d//'
-sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["pathSE"]='srm://dcache-se-cms.desy.de:8443/srm/managerv2?SFN=/pnfs/desy.de/cms/tier2/store/user/fruboes/QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/DiJet_20150416_MN2010_QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/41b5c484f0a77c11d9ec582d0ce99b4d/'
+sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["pathSE"]='srm://dcache-se-cms.desy.de:8443/srm/managerv2?SFN=/pnfs/desy.de/cms/tier2/store/user/fruboes/QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/DiJet_20150416_MN2010_QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/41b5c484f0a77c11d9ec582d0ce99b4d_merged/'
 sam["QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]["DS"]='/QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp/Summer12-LowPU2010_DR42_BS2011_PU_S0_START42_V17B-v1/AODSIM'
 
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]={}
@@ -131,10 +131,10 @@ sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["lumiJet15"]
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["weightNoPu"]='RooFormulaVar("weight","weight", "generatorWeight", RooArgList(v["generatorWeight"]["RooVar"]))'
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["json"]=''
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["lumiDiJet15FB"]='crashMeMC'
-sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["pathTrees"]='/XXXTMFTTree/store/user/fruboes/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/DiJet_20150416_MN2010_QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/8fccaaa0b7be34c31ba8ee16412de867//'
+sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["pathTrees"]='/XXXTMFTTree/store/user/fruboes/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/DiJet_20150416_MN2010_QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/8fccaaa0b7be34c31ba8ee16412de867_merged/'
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["XS"]=22130000000.0
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["pathPAT"]='/XXXTMFPAT/store/user/fruboes/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/DiJet_20150416_MN2010_QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/8fccaaa0b7be34c31ba8ee16412de867//'
-sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["pathSE"]='srm://dcache-se-cms.desy.de:8443/srm/managerv2?SFN=/pnfs/desy.de/cms/tier2/store/user/fruboes/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/DiJet_20150416_MN2010_QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/8fccaaa0b7be34c31ba8ee16412de867/'
+sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["pathSE"]='srm://dcache-se-cms.desy.de:8443/srm/managerv2?SFN=/pnfs/desy.de/cms/tier2/store/user/fruboes/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/DiJet_20150416_MN2010_QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/8fccaaa0b7be34c31ba8ee16412de867_merged/'
 sam["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]["DS"]='/QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6/Summer12-LowPU2010_DR42_PU_S0_START42_V17B-v2/AODSIM'
 
 def icm(sam):

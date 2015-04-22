@@ -6,18 +6,19 @@ import fnmatch
 #   (entry order matters, since it must be consistent with one in rivet routine!)
 todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"]
 #todoCat = todoCatAll
-todoCat = ["InclusiveBasic"]
+#todoCat = ["InclusiveBasic"]
+todoCat = ["MNBasic"]
 #todoCat = ["MNAsym", "InclusiveBasic"]
 #todoCat = ["MNWindow"]
 #todoCat = ["FWD11_002"]
 #todoCat = ["InclusiveBasic"]
 todoSteps = []
-#todoSteps.append("proof")
+todoSteps.append("proof")
 #todoSteps.append("simpleMCplots")
 #todoSteps.append("hadd")
 #todoSteps.append("draw")
 #todoSteps.append("unfold")
-todoSteps.append("merge")
+#todoSteps.append("merge")
 #todoSteps.append("rivetExport")
 
 def main():

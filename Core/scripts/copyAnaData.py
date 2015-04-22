@@ -228,6 +228,8 @@ def main():
     parser.add_option("-m", "--maxFilesMC", action="store",  type="int", dest="maxFilesMC")
     (options, args) = parser.parse_args()
 
+    maxThreads = 1
+
     maxFilesMC = -1
     if options.maxFilesMC:
         maxFilesMC = options.maxFilesMC
@@ -315,7 +317,7 @@ def main():
 
             myproc = subprocess.Popen(cpCommand)
             myprocs.append( (myproc, cpCommand) ) 
-            while len(myprocs) > 3:
+            while len(myprocs) > maxThreads-1:
                 time.sleep(1)
                 for p in myprocs[:]:
                     exitCode = p[0].poll()
