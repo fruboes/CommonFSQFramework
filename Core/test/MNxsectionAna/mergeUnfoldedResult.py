@@ -147,14 +147,76 @@ def main():
     if len(central) != 1:
         raise Exception("Error: more than one central histo found")
     central = central[0]
+    central.GetXaxis().SetTitle("#Delta#eta")
+    central.GetYaxis().SetTitle("#sigma [pb]")
 
     uncert  = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_central_" not in hName ]
-    #uncert  = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_model" in hName ]
+
 
     uncResult= DrawPlots.getUncertaintyBand(uncert, central)
     unc = uncResult["band"]
 
+    uncertaintySplitUp = {}
+    uncertaintySplitUp["total"] = unc
 
+    # interulde - make plot of single  uncertainty contributions
+    variations =  list(set([v.split("_")[1].replace("Up","").replace("Down","") \
+                        for v in  finalSet["merged"].keys() if  "_central_" not in v]))
+    for v in variations:
+        partialUncertHistos = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_"+v  in hName ]
+        if len(partialUncertHistos) != 2:
+            raise Exception("Epexcted two uncertainties for %s" % v  )
+        partialUncert = DrawPlots.getUncertaintyBand(partialUncertHistos, central)["band"]
+        uncertaintySplitUp[v] = partialUncert
+
+
+    cc = ROOT.TCanvas()
+    todoVar = sorted(uncertaintySplitUp.keys())
+    todoVar.remove("total")
+    #todoVar.insert(0, "total") # plot first
+    cc.Divide(1,len(todoVar))
+    gcFix = []
+    for i,v in enumerate(todoVar):
+        yUp = array('d')
+        yDown = array('d')
+        x = array('d')
+        y = array('d')
+        xDown = array('d')
+        xUp = array('d')
+        cc.cd(i+1)
+        print i,v
+        for iPoint in xrange(uncertaintySplitUp[v].GetN()):
+            totalUp = uncertaintySplitUp["total"].GetErrorYhigh(iPoint)
+            totalDown = uncertaintySplitUp["total"].GetErrorYlow(iPoint)
+            partUp = uncertaintySplitUp[v].GetErrorYhigh(iPoint)
+            partDown = uncertaintySplitUp[v].GetErrorYlow(iPoint)
+            rUp, rDown = (1.,1.)
+            if totalUp > 0: rUp = partUp/totalUp
+            if totalDown > 0: rDown = partDown/totalDown
+            x.append(uncertaintySplitUp["total"].GetX()[iPoint])
+            y.append(1)
+            #print iPoint, uncertaintySplitUp["total"].GetX()[iPoint], totalUp, totalDown, partUp, partDown, "|", rUp, rDown
+            xDown.append(uncertaintySplitUp["total"].GetErrorXlow(iPoint))
+            xUp.append(uncertaintySplitUp["total"].GetErrorXhigh(iPoint))
+            yUp.append(rUp)
+            yDown.append(rDown)
+        uncRatio =     ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
+        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0., central.GetXaxis().GetXmax(), 2)
+        frame.GetXaxis().SetTitle
+        gcFix.append(uncRatio)
+        uncRatio.SetFillStyle(3001);
+        uncRatio.Draw("2SAME")
+        #uncRatio.Draw("A2")
+        #uncertaintySplitUp[v].Draw("2SAME")
+        #uncertaintySplitUp[v].Draw("A2")
+        #print i,v
+    cc.Print(indir+"/unc_{}.png".format(options.normalization))
+    cc.Print(indir+"/unc_{}.pdf".format(options.normalization))
+    #%%c.cd(1)
+    #sys.exit()
+
+
+        
     # get GEN level distributions
     histosFromPyAnalyzer = getHistos(histofile)
     herwigDir = "QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"
@@ -193,8 +255,6 @@ def main():
     #central.GetXaxis().SetRangeUser(5,8)
     #central.GetYaxis().SetRangeUser(0,250000)
 
-    central.GetXaxis().SetTitle("#Delta#eta")
-    central.GetYaxis().SetTitle("#sigma [pb]")
     central.GetYaxis().SetTitleOffset(1.8)
     unc.Draw("2SAME")
     central.Draw("SAME")
