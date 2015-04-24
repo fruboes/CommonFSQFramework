@@ -181,9 +181,10 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
 
         binsNew = self.variantFilter.bins()
 
-        # note: set gives as unique items, since _central is repeated
-        self.hist["ptHat"] = ROOT.TH1F("ptHat",   "ptHat",  100, 0, 50)
+        self.hist["ptHat"] = ROOT.TH1F("ptHat_central_jet15",   "ptHat_central_jet15",  100, 0, 50)
+        self.hist["ptHat2"] = ROOT.TH1F("ptHat_central_dj15fb",   "ptHat_central_dj15fb",  100, 0, 50)
 
+        # note: set gives as unique items, since _central is repeated
         for shift in set(self.todoShifts+self.shiftsPU):
             for trg in todoTrg:
                 t = shift+trg
