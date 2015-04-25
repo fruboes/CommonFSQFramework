@@ -142,7 +142,8 @@ def getTreeFilesAndNormalizations(maxFilesMC = None, maxFilesData = None, quiet 
                          +"See CommonFSQFramework.Core/doc/SmallXAnaDefFile.txt for details")
 
     localROOTPrefix = mod.ROOTPrefix
-    isXrootdAccess = "xrootd" in localROOTPrefix
+    isXrootdAccess = localROOTPrefix.startswith("root://")
+
     localAccess = not isXrootdAccess
     if isXrootdAccess:
         if not  distutils.spawn.find_executable("lcg-ls"):
