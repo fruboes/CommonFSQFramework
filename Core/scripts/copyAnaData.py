@@ -207,8 +207,8 @@ def checkDataIntegrity(remove = False, checkFilesWithRoot = False):
 
                         
                         
-                            
-
+def fixPath(p):
+    return p.replace("/srm://", "srm://")
 
         
 
@@ -228,7 +228,7 @@ def main():
     parser.add_option("-m", "--maxFilesMC", action="store",  type="int", dest="maxFilesMC")
     (options, args) = parser.parse_args()
 
-    maxThreads = 1
+    maxThreads = 8
 
     maxFilesMC = -1
     if options.maxFilesMC:
@@ -263,23 +263,21 @@ def main():
             print "No SE path found for sample", s
 
         try:
-            todo = [sampleList[s]["pathPAT"], sampleList[s]["pathTrees"]]
+            todo = [fixPath(sampleList[s]["pathPAT"]), fixPath(sampleList[s]["pathTrees"])]
             for d in todo:
-                os.system("mkdir -p "+ d)
-                if not os.path.isdir(d):
-                    raise Exception("Cannot create output dir "+d)
-                    continue
+                if not d.startswith("srm://"):
+                    os.system("mkdir -p "+ d)
+                    if not os.path.isdir(d):
+                        raise Exception("Cannot create output dir "+d)
+                        continue
         except:
+            print "Warning: something may have gone wrong with directory creation, skipping"
             continue
-
-        # TODO: check dir existence
-
-
 
         # on my installation lcg-ls does not have offset/count params
         # needed for srm access to dirs with >1000 files.
         
-#command = ["lcg-ls", sampleList[s]["pathSE"]]
+        #command = ["lcg-ls", sampleList[s]["pathSE"]]
         if options.usesrmls:
             flist = getFileListSrmLS(sampleList[s]["pathSE"])
         else:
@@ -299,6 +297,7 @@ def main():
                 doCopy = True
                 targetDir = sampleList[s]["pathTrees"]
                 typeString = "treeFile"
+            targetDir = fixPath(targetDir)
 
             if not doCopy: continue
             cnt += 1
@@ -309,7 +308,15 @@ def main():
 
             cpCommand = ['lcg-cp', srcFile, targetFile]
             #cpCommand = ['lcg-ls', srcFile]
-            if os.path.isfile(targetFile):
+            allreadyPresent = False
+            if targetFile.startswith("srm://"):
+                ret = subprocess.call(["lcg-ls", targetFile])
+                if ret == 0: allreadyPresent = True
+            else:
+                if os.path.isfile(targetFile):
+                    allreadyPresent = True
+
+            if allreadyPresent:
                 print "Allready present", typeString, fname, " #"+str(cnt), "from", s
                 continue
 
