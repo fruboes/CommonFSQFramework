@@ -7,16 +7,16 @@ import fnmatch
 todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"]
 #todoCat = todoCatAll
 #todoCat = ["InclusiveBasic"]
-todoCat = ["MNBasic"]
+#todoCat = ["MNBasic"]
 #todoCat = ["MNAsym", "InclusiveBasic"]
-#todoCat = ["MNWindow"]
+todoCat = ["MNWindow"]
 #todoCat = ["FWD11_002"]
 #todoCat = ["InclusiveBasic"]
 todoSteps = []
-todoSteps.append("proof")
+#todoSteps.append("proof")
 #todoSteps.append("simpleMCplots")
 #todoSteps.append("hadd")
-#todoSteps.append("draw")
+todoSteps.append("draw")
 #todoSteps.append("unfold")
 #todoSteps.append("merge")
 #todoSteps.append("rivetExport")
