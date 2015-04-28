@@ -289,6 +289,8 @@ def getTreeFilesAndNormalizations(maxFilesMC = None, maxFilesData = None, quiet 
             if not quiet: print tab, "[xcheck] number of events passed to tree producers (ie when running on AOD):", evCntSeenByTreeProducers
         ret[s]["files"] = fileList
         ret[s]["normFactor"] = normFactor
+        ret[s]["eventsProcessedByCrab"] = evCnt
+        ret[s]["eventsSeenByTreeProd"] = evCntSeenByTreeProducers
 
     return ret
 

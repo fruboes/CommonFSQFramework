@@ -47,7 +47,6 @@ import sys, os, time, traceback
 sys.path.append(os.path.dirname(__file__))
 import ROOT
 ROOT.gROOT.SetBatch(True)
-
 from array import *
 
 from CommonFSQFramework.Core.GetDatasetInfo import getTreeFilesAndNormalizations
@@ -109,12 +108,12 @@ class ExampleProofReader( ROOT.TPySelector ):
 
     def Begin( self ):
         #print 'py: beginning'
-        self.getVariables()
+        self.getVariables() # this sets variables (accessible via self.varnableName) as set via slaveParameters
 
     def SlaveBegin( self, tree ):
         #print 'py: slave beginning'
         try:
-            self.getVariables() # needed for 
+            self.getVariables() # this sets variables (accessible via self.varnableName) as set via slaveParameters
         except:
             print "Exception catched during worker configuration. Traceback:"
             traceback.print_exc(file=sys.stdout)
@@ -131,6 +130,11 @@ class ExampleProofReader( ROOT.TPySelector ):
             ROOT.gDirectory.cd(curPath)
         else:
             self.oFileViaPOF = None
+
+        self.histcnt = ROOT.TH1I("CFFEventsSeenProof",   "CFFEventsSeenProof",  1, -0.5, 0.5)
+        self.histcnt.GetXaxis().SetBinLabel(1, "proof")
+
+        self.addToOutput(self.histcnt)
 
         try:
             self.init() 
@@ -166,6 +170,8 @@ class ExampleProofReader( ROOT.TPySelector ):
     def Process( self, entry ):
         if self.fChain.GetEntry( entry ) <= 0:
            return 0
+
+        self.histcnt.Fill(0)
 
         try:
             self.analyze()
@@ -297,12 +303,7 @@ class ExampleProofReader( ROOT.TPySelector ):
             sys.stdout.flush()
             raise Exception("Whooopps!")
 
-
-
-
-        #print 'py: terminating' 
         olist =  self.GetOutputList()
-
         if not self.useProofOFile:
             of = ROOT.TFile(self.outFile, "UPDATE") # TODO - take dir name from Central file
             outDir = of.mkdir(self.datasetName)
@@ -347,6 +348,7 @@ class ExampleProofReader( ROOT.TPySelector ):
 
         sampleListFullInfo = CommonFSQFramework.Core.Util.getAnaDefinition("sam")
         sampleCnt = 0
+
         for t in todo:
             sampleCnt += 1
             print "#"*60
@@ -364,6 +366,9 @@ class ExampleProofReader( ROOT.TPySelector ):
             slaveParameters["datasetName"] = t
             slaveParameters["isData"] = sampleListFullInfo[t]["isData"]
             slaveParameters["normalizationFactor"] =  treeFilesAndNormalizations[t]["normFactor"]
+            slaveParameters["eventsProcessedByCrab"] = treeFilesAndNormalizations[t]["eventsProcessedByCrab"]
+            slaveParameters["eventsSeenByTreeProd"] = treeFilesAndNormalizations[t]["eventsSeenByTreeProd"]
+
 
             ROOT.TProof.AddEnvVar("PATH2",ROOT.gSystem.Getenv("PYTHONPATH")+":"+os.getcwd())
 
@@ -399,7 +404,7 @@ class ExampleProofReader( ROOT.TPySelector ):
                 if nWorkers == None:
                     proof = ROOT.TProof.Open('')
                 else:
-                    proof = ROOT.TProof.Open('workers='+str(nWorkers))
+                    proof = ROOT.TProof.Open('lite://','workers='+str(nWorkers))
             else:
                 proof = ROOT.TProof.Open(proofConnectionString)
 
@@ -409,6 +414,7 @@ class ExampleProofReader( ROOT.TPySelector ):
             for v in variablesToSetInProof:  
                 # if you get better implemenation (GetParameter?) mail me
                 proof.Exec('gSystem->Setenv("'+v+'","'+variablesToSetInProof[v]+'");')
+
             print dataset.Process( 'TPySelector',  cls.__name__)
 
             try:
@@ -439,6 +445,13 @@ class ExampleProofReader( ROOT.TPySelector ):
             hist.SetBinContent(1, norm)
             #saveDir.WriteObject(hist, hist.GetName())
             hist.Write(hist.GetName())
+
+            histcnt = ROOT.TH1I("CFFEventsSeenSkim",   "CFFEventsSeenSkim",  2, -0.5, 1.5)
+            histcnt.GetXaxis().SetBinLabel(1, "crab")
+            histcnt.GetXaxis().SetBinLabel(2, "tree producer")
+            histcnt.SetBinContent(1, treeFilesAndNormalizations[t]["eventsProcessedByCrab"])
+            histcnt.SetBinContent(2, treeFilesAndNormalizations[t]["eventsSeenByTreeProd"])
+            histcnt.Write(histcnt.GetName())
 
             of.Close()
             ROOT.gDirectory.cd(curPath)
