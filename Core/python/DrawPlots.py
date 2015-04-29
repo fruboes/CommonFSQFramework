@@ -28,6 +28,7 @@ class DrawPlots():
         os.system("mkdir -p " + self.outdirOtherFormats)
         self.skipFinalMap = skipFinalMap
 
+
         pass
 
     @staticmethod
@@ -87,7 +88,7 @@ class DrawPlots():
         maxY = max(max(y), max( [a-b for a,b in zip(y, yDown)]),  max( [a+b for a,b in zip(y, yUp)]))
 
         ret = ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
-        ret.SetFillStyle(3001);
+        #ret.SetFillStyle(3001);
 
         retD = {}
         retD["band"] = ret
@@ -206,6 +207,10 @@ class DrawPlots():
                 for c in dirContents:
                     if "PROOF_" in c.GetName(): continue
                     if "norm" == c.GetName(): continue # not needed since we expect to get normalized histos
+                    if c.GetName().startswith("CFF"):
+                        print "Skipping CFF specific histo:", c.GetName()
+                        continue
+
                     curObj = c.ReadObj()
                     if not curObj.InheritsFrom("TH1"):
                         print "Dont know how to merge", curObj.GetName(), curObj.ClassName()
@@ -363,15 +368,19 @@ class DrawPlots():
 
 
                     maximum = max(maxima)*1.05
-                    unc.SetFillColor(17);
+                    #unc.SetFillColor(17)
+                    unc.SetFillColor(ROOT.kOrange-2)
                     if hData != None:
                         hData.SetMaximum(maximum)
                         hData.Draw()
+                        DrawPlots.uniformFont(hData)
                         #unc.Draw("3SAME")
                         unc.Draw("2SAME")
                         MCStack.Draw("SAME")
+                        hData.Draw("SAME")
                     else:
                         MCStack.Draw()
+                        DrawPlots.uniformFont(MCStack)
                         #unc.Draw("3SAME")
                         unc.Draw("2SAME")
                         MCStack.Draw("SAME")
@@ -394,7 +403,22 @@ class DrawPlots():
                         hSumRatio = hSum.Clone()
                         hSumRatio.Divide(central)
 
-                        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0, central.GetXaxis().GetXmax(), 3)
+                        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0.3, central.GetXaxis().GetXmax(), 1.7)
+                        frame.GetYaxis().SetNdivisions(505)
+                        frame.GetYaxis().SetTitle("#frac{MC}{data}")
+                        #frame.GetYaxis().SetTitleOffset(central.GetYaxis().GetTitleOffset()*1.5)
+                        #frame.GetXaxis().SetTitleOffset(central.GetXaxis().GetTitleOffset())
+                        frame.GetYaxis().SetTitleOffset(1.8)
+                        #frame.GetXaxis().SetTitleOffset(1.5)
+                        frame.GetXaxis().SetTitleOffset(5)
+                         #   dataHisto.GetYaxis().SetTitleOffset(1.8)
+                        #    dataHisto.GetXaxis().SetTitleOffset(1.5)
+                        ROOT.gPad.SetTopMargin(0.)
+                        ROOT.gPad.SetBottomMargin(0.4)
+
+
+
+                        DrawPlots.uniformFont(frame)
                         extra["frame"] = frame
                         ##
                         yUp = array('d')
@@ -422,8 +446,9 @@ class DrawPlots():
 
                         if len(x) > 0:
                             uncRatio = ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
-                            uncRatio.SetFillStyle(3001)
-                            uncRatio.SetFillColor(17)
+                            #uncRatio.SetFillStyle(3001)
+                            #uncRatio.SetFillColor(17)
+                            uncRatio.SetFillColor(ROOT.kOrange-2)
                             uncRatio.Draw("2SAME")
                             centralRatio.Draw("SAME")
                             hSumRatio.Draw("SAME")
@@ -437,6 +462,16 @@ class DrawPlots():
                     c1.Print(self.outdir + "/" + targetCat + "_" + centralName+".png")
                     c1.Print(self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".pdf")
                     c1.Print(self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".root")
+
+    @staticmethod
+    def uniformFont(h):
+        todo = [h, h.GetXaxis(), h.GetYaxis()]
+        for t in todo:
+            t.SetLabelFont(43)
+            t.SetLabelSize(20)
+            t.SetTitleFont(44)
+            t.SetTitleSize(20)
+
 
 if __name__ == "__main__":
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)

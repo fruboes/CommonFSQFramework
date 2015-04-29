@@ -93,15 +93,35 @@ class DrawMNPlots(DrawPlots):
 
     @staticmethod
     def banner():
-        latex = ROOT.TLatex()
-        latex.SetNDC()
-        latex.SetTextAngle(0)
-        #latex.SetTextColor(kBlack);
+        latexCMS = ROOT.TLatex()
+        latexCMS.SetNDC()
+        latexCMS.SetTextFont(61)
+        latexCMS.SetTextAlign(31) 
+        cmsTextSize      = 0.75
+        t = ROOT.gPad.GetTopMargin()
 
-        latex.SetTextFont(42)
-        #latex.SetTextAlign(31)
-        latex.SetTextSize(0.04);
-        latex.DrawLatex(0.2,0.95, "CMS Preliminary, pp, 5.36 pb^{-1}, #sqrt{s}=7 TeV");
+        r = ROOT.gPad.GetRightMargin()
+
+        text = "CMS"
+        offX = 0.025
+        offY = 0.1
+        latexCMS.SetTextSize(t*cmsTextSize)
+        latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+
+        #text = "\\rm \\mathcal{L}=5.36 pb^{-1}, \\sqrt{s}=7 TeV"
+        #text = "\\rm 5.36 pb^{-1} (\\sqrt{s}=7 TeV)"
+        text = "5.36 pb^{-1} (7 TeV)"
+        latexCMS.SetTextFont(42)
+        latexCMS.SetTextSize(t*cmsTextSize*0.6)
+        latexCMS.DrawLatex( 1-r-offX, 1-t+0.01, text)
+
+        text = "preliminary"
+        latexCMS.SetTextFont(52)
+        latexCMS.SetTextSize(t*cmsTextSize*0.76)
+        offY = 0.2
+
+        latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+
 
     @staticmethod
     def xLabels():
@@ -152,8 +172,12 @@ class DrawMNPlots(DrawPlots):
 
         if nameShort in xLabels:
             dataHisto.GetXaxis().SetTitle(xLabels[nameShort])
+            if "frame" in extra:
+                extra["frame"].GetXaxis().SetTitle(xLabels[nameShort])
         else:
             dataHisto.GetXaxis().SetTitle("TODO:"+ nameShort)
+            if "frame" in extra:
+                extra["frame"].GetXaxis().SetTitle("TODO:"+ nameShort)
 
         if nameShort in yLabels:
             dataHisto.GetYaxis().SetTitle(yLabels[nameShort])
@@ -164,7 +188,8 @@ class DrawMNPlots(DrawPlots):
         if nameShort in ranges:
             r = ranges[nameShort]
             dataHisto.GetXaxis().SetRangeUser(r[0], r[1])
-            extra["frame"].GetXaxis().SetRangeUser(r[0], r[1])
+            if "frame" in extra:
+                extra["frame"].GetXaxis().SetRangeUser(r[0], r[1])
 
         dataHisto.GetYaxis().SetTitleOffset(1.8)
         dataHisto.GetXaxis().SetTitleOffset(1.5)
@@ -177,7 +202,15 @@ class DrawMNPlots(DrawPlots):
         legendPos = {}
         legendPos["dj15fb"] = {}
         legendPos["jet15"] = {}
-        legendPos["jet15"]["default"] = (0.6, 0.7, 0.9, 0.85)
+
+        b = ROOT.gPad.GetBottomMargin()
+        r = ROOT.gPad.GetRightMargin()
+        h = 0.15
+        w = 0.2
+        hOffset = 0.15
+        wOffset = 0.05
+
+        legendPos["jet15"]["default"] = (1-r-w-wOffset, b+hOffset, 1-r-wOffset, b+hOffset+h)
         legendPos["dj15fb"]["default"] = legendPos["jet15"]["default"]
         off = 0.2
         legendPos["dj15fb"]["etaLead"] = (0.6-off, 0.7, 0.9-off, 0.85)
