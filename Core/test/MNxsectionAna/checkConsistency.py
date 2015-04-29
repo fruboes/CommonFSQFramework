@@ -40,8 +40,11 @@ for s in sample2type2cnt:
     if len(allAnaTypes-typesForThisSample) != 0:
         print "Warning - missing ana for", s, "-", " ".join(allAnaTypes-typesForThisSample)
 
-    cnts = set([sample2type2cnt[s][t] for t in sample2type2cnt[s]])
-    if len(cnts)>1 or len(cnts)==1 and list(cnts)[0]==0:
-        print "Problem: ", s, " ".join(map(str,cnts))
+    cnts = [sample2type2cnt[s][t] for t in sample2type2cnt[s]]
+    cntsSet = set(cnts)
+    if len(cntsSet)>1 or len(cntsSet)==1 and list(cntsSet)[0]==0:
+        print "Problem: ", s, " ".join(map(str,cntsSet))
+        for tt in sample2type2cnt[s]:
+            print "    ",tt, sample2type2cnt[s][tt], cnts.count(sample2type2cnt[s][tt])
 
 
