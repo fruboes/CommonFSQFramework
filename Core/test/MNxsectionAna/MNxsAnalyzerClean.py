@@ -593,7 +593,7 @@ if __name__ == "__main__":
     #maxFilesMC = 48
     #maxFilesMC = 1
     #maxFilesData = 1
-    nWorkers = 36
+    nWorkers = 40
     #maxFilesMC = 16
     #nWorkers = 12
     #nWorkers = 10
