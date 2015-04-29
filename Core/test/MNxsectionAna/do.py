@@ -5,23 +5,37 @@ import fnmatch
 # note: dont touch todoCatAll variable, since rivet export in mergeUnfolded.py depends on it 
 #   (entry order matters, since it must be consistent with one in rivet routine!)
 todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"]
-#todoCat = todoCatAll
+todoCat = todoCatAll
 #todoCat = ["InclusiveBasic"]
 #todoCat = ["MNBasic"]
 #todoCat = ["MNAsym", "InclusiveBasic"]
-todoCat = ["MNWindow"]
+#todoCat = ["MNWindow"]
 #todoCat = ["FWD11_002"]
 #todoCat = ["InclusiveBasic"]
 todoSteps = []
 #todoSteps.append("proof")
 #todoSteps.append("simpleMCplots")
-#todoSteps.append("hadd")
-todoSteps.append("draw")
+todoSteps.append("hadd")
+#todoSteps.append("draw")
 #todoSteps.append("unfold")
 #todoSteps.append("merge")
 #todoSteps.append("rivetExport")
 
+from optparse import OptionParser
 def main():
+    parser = OptionParser(usage="usage: %prog [options] filename",
+                            version="%prog 1.0")
+                            
+    #parser.add_option("-p", "--plotDefFile",   action="store", type="string", dest="plotDefFile", help="plot using definitions from plot def file" )
+    parser.add_option("-c", "--todoCats",   action="store", type="string", dest="todoCats", help="ana types to do" )
+    (options, args) = parser.parse_args()
+    global todoCat
+    if options.todoCats:
+        todoCat = options.todoCats.split(",")
+        doIknowAll = set(todoCat)-set(todoCatAll)
+        if len(doIknowAll) != 0:
+            raise Exception("Unknown analysis type(s): "+ " ".join(doIknowAll) )
+    
     for cat in todoCat:
         for step in todoSteps:
             if step == "proof":
