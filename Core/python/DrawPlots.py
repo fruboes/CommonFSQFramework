@@ -370,6 +370,7 @@ class DrawPlots():
                     maximum = max(maxima)*1.05
                     #unc.SetFillColor(17)
                     unc.SetFillColor(ROOT.kOrange-2)
+                    unc.SetLineColor(ROOT.kOrange-2)
                     if hData != None:
                         hData.SetMaximum(maximum)
                         hData.Draw()
@@ -449,6 +450,7 @@ class DrawPlots():
                             #uncRatio.SetFillStyle(3001)
                             #uncRatio.SetFillColor(17)
                             uncRatio.SetFillColor(ROOT.kOrange-2)
+                            uncRatio.SetLineColor(ROOT.kOrange-2)
                             uncRatio.Draw("2SAME")
                             centralRatio.Draw("SAME")
                             hSumRatio.Draw("SAME")

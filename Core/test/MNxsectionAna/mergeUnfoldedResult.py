@@ -202,9 +202,9 @@ def main():
             yDown.append(rDown)
         uncRatio =     ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
         frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0., central.GetXaxis().GetXmax(), 2)
-        frame.GetXaxis().SetTitle
+        DrawPlots.uniformFont(frame)
         gcFix.append(uncRatio)
-        uncRatio.SetFillStyle(3001);
+        #uncRatio.SetFillStyle(3001);
         uncRatio.Draw("2SAME")
         #uncRatio.Draw("A2")
         #uncertaintySplitUp[v].Draw("2SAME")
@@ -250,25 +250,58 @@ def main():
     ROOT.gPad.SetTopMargin(0.1)
     #c.SetRightMargin(0.07)
     central.SetMaximum(max(maxima)*1.05)
-    unc.SetFillColor(17);
+    #unc.SetFillColor(17);
+    unc.SetFillColor(ROOT.kOrange-2)
+    unc.SetLineColor(ROOT.kOrange-2)
+
+    DrawPlots.uniformFont(central)
     central.Draw()
     #central.GetXaxis().SetRangeUser(5,8)
     #central.GetYaxis().SetRangeUser(0,250000)
 
     central.GetYaxis().SetTitleOffset(1.8)
+    central.GetXaxis().SetTitleOffset(1.2)
     unc.Draw("2SAME")
     central.Draw("SAME")
+    central.SetMarkerStyle(20)
+    central.SetMarkerSize(0.25)
 
     genHistoHerwig.Draw("SAME HIST")
     genHistoHerwig.SetLineColor(2)
+    genHistoHerwig.SetMarkerColor(2)
+    #genHistoHerwig.SetMarkerStyle(20)
+    genHistoHerwig.SetLineWidth(2)
 
     genHistoPythia.Draw("SAME HIST")
     genHistoPythia.SetLineColor(4)
+    genHistoPythia.SetMarkerColor(4)
+    #genHistoPythia.SetMarkerStyle(21)
+    genHistoPythia.SetLineWidth(2)
 
-    DrawMNPlots.banner()
+    extra = {}
+    j1t = 35
+    j2t = 35
+    if options.variant.endswith("Asym"):
+        j2t = 45
+    if options.variant.endswith("Window"):
+        j2t = 55
 
 
-    legend = ROOT.TLegend(0.6, 0.7, 0.9, 0.85)
+    extra["afterLumi"] = ",\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+    extra["afterLumi"] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+    if options.variant.endswith("Window"):
+        extra["afterLumi"] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
+
+    DrawMNPlots.banner(extra)
+
+    legendX2 = 1- ROOT.gPad.GetRightMargin()-0.02
+    #print "XXX", legendX2
+    legendWidth = 0.2
+    legendX1 = legendX2-legendWidth
+    legendHeight = 0.35
+
+    legend = ROOT.TLegend(legendX1, ROOT.gPad.GetBottomMargin()+0.2, \
+                          legendX2, ROOT.gPad.GetBottomMargin()+0.2+legendHeight  )
     legend.SetFillColor(0)
     legend.AddEntry(central, "data", "pel")
     legend.AddEntry(unc, "syst. unc.", "f")
@@ -277,7 +310,15 @@ def main():
     legend.Draw("SAME")    
 
     c.cd(2)
+    ROOT.gPad.SetTopMargin(0.)
+    ROOT.gPad.SetBottomMargin(0.4)
     frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0, central.GetXaxis().GetXmax(), 3)
+    DrawPlots.uniformFont(frame)
+    frame.GetYaxis().SetNdivisions(505)
+    frame.GetYaxis().SetTitle("#frac{MC}{data}")
+    frame.GetYaxis().SetTitleOffset(1.8)
+    frame.GetXaxis().SetTitleOffset(5)
+    frame.GetXaxis().SetTitle(central.GetXaxis().GetTitle())
     #frame.GetXaxis().SetRangeUser(5,8)
 
     yUp = array('d')
@@ -327,8 +368,10 @@ def main():
 
     #uncRatio = ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
 
-    uncRatio.SetFillStyle(3001)
-    uncRatio.SetFillColor(17)
+    #uncRatio.SetFillStyle(3001)
+    #uncRatio.SetFillColor(17)
+    uncRatio.SetFillColor(ROOT.kOrange-2)
+    uncRatio.SetLineColor(ROOT.kOrange-2)
     uncRatio.Draw("2SAME")
 
 
@@ -351,6 +394,10 @@ def main():
     c.Print(indir+"/mergedUnfolded_{}.root".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
+    legend.SetX1NDC(0.02 + ROOT.gPad.GetLeftMargin())
+    legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
+    legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
+    legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
     c.Print(indir+"/mergedUnfolded_{}_log.png".format(options.normalization))
     c.Print(indir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
 

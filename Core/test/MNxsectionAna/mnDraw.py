@@ -92,7 +92,7 @@ class DrawMNPlots(DrawPlots):
         CommonFSQFramework.Core.Style.setTDRStyle()
 
     @staticmethod
-    def banner():
+    def banner(extra={}):
         latexCMS = ROOT.TLatex()
         latexCMS.SetNDC()
         latexCMS.SetTextFont(61)
@@ -110,15 +110,19 @@ class DrawMNPlots(DrawPlots):
 
         #text = "\\rm \\mathcal{L}=5.36 pb^{-1}, \\sqrt{s}=7 TeV"
         #text = "\\rm 5.36 pb^{-1} (\\sqrt{s}=7 TeV)"
-        text = "5.36 pb^{-1} (7 TeV)"
+        text = "\\int L=5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        if "afterLumi" in extra:
+            text += extra["afterLumi"]
+
+
         latexCMS.SetTextFont(42)
-        latexCMS.SetTextSize(t*cmsTextSize*0.6)
-        latexCMS.DrawLatex( 1-r-offX, 1-t+0.01, text)
+        latexCMS.SetTextSize(t*cmsTextSize*0.5)
+        latexCMS.DrawLatex( 1-r-offX, 1-t+0.025, text)
 
         text = "preliminary"
         latexCMS.SetTextFont(52)
-        latexCMS.SetTextSize(t*cmsTextSize*0.76)
-        offY = 0.2
+        latexCMS.SetTextSize(t*cmsTextSize*0.6)
+        offY = 0.15
 
         latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
 
