@@ -8,6 +8,7 @@ import sys
 sample2type2cnt = {}
 
 for f in glob.glob("*.root"):
+    if not f.startswith("plots"): continue
     if f.count("_") == 1 : continue
     spl = f.split("_")
     anaType = spl.pop(1)
@@ -46,5 +47,8 @@ for s in sample2type2cnt:
         print "Problem: ", s, " ".join(map(str,cntsSet))
         for tt in sample2type2cnt[s]:
             print "    ",tt, sample2type2cnt[s][tt], cnts.count(sample2type2cnt[s][tt])
+    else:
+        print "All ok with", s, "-", list(cntsSet)[0], "events"
+
 
 
