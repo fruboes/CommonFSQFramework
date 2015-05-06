@@ -85,6 +85,7 @@ def main():
         finalSet[t] = {}
         for hName in histos["herwig"][t]:
             if hName.startswith("xs_"): continue # skip detector level histogram
+            if hName.startswith("chi2scan"): continue 
 
             hAvg = histos["herwig"][t][hName].Clone()
 
@@ -145,7 +146,8 @@ def main():
     # make final plot, including uncertainty band
     central = [ finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_central_" in hName ]
     if len(central) != 1:
-        raise Exception("Error: more than one central histo found")
+
+        raise Exception("Error: {} central histo(s) found: ".format(len(central))+ " ".join([ h.GetName() for h in central  ]))
     central = central[0]
     central.GetXaxis().SetTitle("#Delta#eta")
     central.GetYaxis().SetTitle("#sigma [pb]")
@@ -162,20 +164,42 @@ def main():
     # interulde - make plot of single  uncertainty contributions
     variations =  list(set([v.split("_")[1].replace("Up","").replace("Down","") \
                         for v in  finalSet["merged"].keys() if  "_central_" not in v]))
+
+    toyMCDone = False
     for v in variations:
-        partialUncertHistos = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_"+v  in hName ]
-        if len(partialUncertHistos) != 2:
-            raise Exception("Epexcted two uncertainties for %s" % v  )
+        isToyMC = v.startswith("toyMC")
+        if not isToyMC:
+            partialUncertHistos = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_"+v  in hName ]
+        else: # here we want to have just one entry for all toyMC variations
+            if toyMCDone: continue
+            toyMCDone = True
+            partialUncertHistos = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_"+"toyMC"  in hName ]
+            v = "toyMC"
+
+        if not isToyMC and len(partialUncertHistos) != 2 or isToyMC and len(partialUncertHistos) != 6:
+            raise Exception("Found wrong ({})number of uncertainties for {}".format(len(partialUncertHistos), v)  )
         partialUncert = DrawPlots.getUncertaintyBand(partialUncertHistos, central)["band"]
         uncertaintySplitUp[v] = partialUncert
 
 
     cc = ROOT.TCanvas()
+    # GetWh
+    #cc.SetCanvasSize(cc.GetWw(), int(cc.GetWh()*1.3))
+    cc.SetCanvasSize(cc.GetWw()*2, cc.GetWh())
     todoVar = sorted(uncertaintySplitUp.keys())
     todoVar.remove("total")
     #todoVar.insert(0, "total") # plot first
-    cc.Divide(1,len(todoVar))
+    #cc.Divide(1,len(todoVar))
+    cc.Divide(2, (len(todoVar)+1)/2)
     gcFix = []
+    prettyNames = {}
+    prettyNames["jec"] = "JEC"
+    prettyNames["jer"] = "JER"
+    prettyNames["lumi"] = "lumi"
+    prettyNames["model"] = "model dep."
+    prettyNames["pu"] = "PU"
+    prettyNames["toyMC"] = "MC stat."
+
     for i,v in enumerate(todoVar):
         yUp = array('d')
         yDown = array('d')
@@ -190,21 +214,33 @@ def main():
             totalDown = uncertaintySplitUp["total"].GetErrorYlow(iPoint)
             partUp = uncertaintySplitUp[v].GetErrorYhigh(iPoint)
             partDown = uncertaintySplitUp[v].GetErrorYlow(iPoint)
-            rUp, rDown = (1.,1.)
+            #rUp, rDown = (1.,1.)
+            rUp, rDown = (0.,0.)
             if totalUp > 0: rUp = partUp/totalUp
             if totalDown > 0: rDown = partDown/totalDown
             x.append(uncertaintySplitUp["total"].GetX()[iPoint])
-            y.append(1)
+            #y.append(1)
+            y.append(0)
             #print iPoint, uncertaintySplitUp["total"].GetX()[iPoint], totalUp, totalDown, partUp, partDown, "|", rUp, rDown
             xDown.append(uncertaintySplitUp["total"].GetErrorXlow(iPoint))
             xUp.append(uncertaintySplitUp["total"].GetErrorXhigh(iPoint))
             yUp.append(rUp)
             yDown.append(rDown)
         uncRatio =     ROOT.TGraphAsymmErrors(len(x), x, y, xDown, xUp, yDown, yUp)
-        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0., central.GetXaxis().GetXmax(), 2)
+        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), -1.1, central.GetXaxis().GetXmax(), 1.1)
+        frame.GetYaxis().SetNdivisions(505)
+        frame.GetXaxis().SetTitle(central.GetXaxis().GetTitle())
+        frame.GetYaxis().SetTitle("#frac{#sigma_{"+prettyNames[v]+"}}{#sigma_{total}}")
+        frame.GetXaxis().SetTitleOffset(3)
+        frame.GetYaxis().SetTitleOffset(2)
+        frame.Draw()
+        ROOT.gPad.SetBottomMargin(0.2)
+        ROOT.gPad.SetGridy()
         DrawPlots.uniformFont(frame)
         gcFix.append(uncRatio)
         #uncRatio.SetFillStyle(3001);
+        uncRatio.SetFillColor(ROOT.kOrange-2)
+        uncRatio.SetLineColor(ROOT.kOrange-2)
         uncRatio.Draw("2SAME")
         #uncRatio.Draw("A2")
         #uncertaintySplitUp[v].Draw("2SAME")
@@ -394,6 +430,7 @@ def main():
     c.Print(indir+"/mergedUnfolded_{}.root".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
+    central.SetMaximum(max(maxima)*1.5)
     legend.SetX1NDC(0.02 + ROOT.gPad.GetLeftMargin())
     legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
     legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())

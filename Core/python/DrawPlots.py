@@ -296,8 +296,9 @@ class DrawPlots():
                     targetsMC.append(target)
 
 
-
-            for h in histos:
+            todoHistos = list(histos)
+            todoHistos = [todoHistos[0]] + todoHistos # workaround some dumb margin/style related bug for first hist
+            for h in todoHistos:
                 #for t in triggers:
                     t = targetCat.split("_")[-1]
                     centralName = h+"_central_" +t

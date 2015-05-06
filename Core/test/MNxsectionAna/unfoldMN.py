@@ -285,8 +285,8 @@ def unfold(action, infileName):
 
             # perform chi2 vs nIter scan (doesnt affect the final result
             if "central" in variation:
-                scanName = "chi2scan_"+rawName
-                hScan = ROOT.TH1F(scanName, scanName+";iterations;chi^{2}", 8, 0.5, 8.5)
+                scanName = "chi2scan"+rawName
+                hScan = ROOT.TH1F(scanName, scanName+";iterations;#chi^{2}", 8, 0.5, 8.5)
                 hScan.GetYaxis().SetTitleOffset(1.8)
                 for i in xrange(1,9):
                     chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i)[1]
@@ -295,6 +295,14 @@ def unfold(action, infileName):
                 canv = ROOT.TCanvas()
                 canv.SetLeftMargin(0.2)
                 hScan.Draw()
+                hScan.SetLineWidth(2)
+                hScan.SetLineColor(4)
+                ROOT.gPad.SetTopMargin(0.1)
+                hScan.GetYaxis().SetTitleOffset(1.8)
+                #hScan.GetXaxis().SetTitleOffset(1.5)
+
+                #odirROOTfile.WriteTObject(hScan, scanName)
+                DrawMNPlots.banner()
                 canv.Print(optionsReg["odir"]+"/chi2/{}_{}.png".format(action,scanName))
                 canv.Print(optionsReg["odir"]+"/chi2/{}_{}.pdf".format(action,scanName))
 
