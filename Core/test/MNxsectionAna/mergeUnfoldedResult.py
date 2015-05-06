@@ -15,6 +15,31 @@ from optparse import OptionParser
 import math
 
 import sys
+def getExtra(variant):    
+    extra = {}
+    j1t = 35
+    j2t = 35
+    if variant.endswith("Asym"):
+        j2t = 45
+    if variant.endswith("Window"):
+        j2t = 55
+
+
+    extra["afterLumi"] = ",\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+    extra["afterLumi"] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+    if variant.endswith("Window"):
+        extra["afterLumi"] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
+
+    #extra["bottomLeft"] = "Inclusive"
+    #if variant.startswith("MN"):
+    #    extra["bottomLeft"] = "Mueller-Navelet like"
+    selType = "\\mathrm{inclusive}"
+    if variant.startswith("MN"):
+       selType  = "\\mathrm{M.-N. like}"
+
+    extra["afterLumi"]+= ", "+selType
+    return extra
+
 def main():
     CommonFSQFramework.Core.Style.setTDRStyle()
 
@@ -150,7 +175,14 @@ def main():
         raise Exception("Error: {} central histo(s) found: ".format(len(central))+ " ".join([ h.GetName() for h in central  ]))
     central = central[0]
     central.GetXaxis().SetTitle("#Delta#eta")
-    central.GetYaxis().SetTitle("#sigma [pb]")
+    unit = "[pb]"
+    if options.normalization == "area":
+        unit = "[a.u.]"
+
+    if normalizeToBinWidth:
+        central.GetYaxis().SetTitle("#frac{d#sigma}{d(#Delta#eta)} "+unit)
+    else:
+        central.GetYaxis().SetTitle("#sigma "+unit)
 
     uncert  = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_central_" not in hName ]
 
@@ -183,14 +215,52 @@ def main():
 
 
     cc = ROOT.TCanvas()
+    cc.SetCanvasSize(cc.GetWw()*2, cc.GetWh())
+    #cc.SetTopMargin(0.1)
+
+    cc.Divide(1,2)
+    cc.cd(1)
+    split = 0.9
+    margin = 0.005
+    ROOT.gPad.SetPad(.005, split+margin, .995, .995)
+    cc.cd(2)
+    ROOT.gPad.SetPad(.005, .005, .995, split)
+    cur=cc.cd(1)
+
+    # warning: brainfuck.
+    fr = cur.DrawFrame(0,0,1,1)
+    fr.SetAxisColor(0,"X")
+    fr.SetAxisColor(0,"Y")
+    fr.GetXaxis().SetLabelColor(0)
+    fr.GetYaxis().SetLabelColor(0)
+    labels = DrawMNPlots.banner(getExtra(options.variant), False)
+    latexCMS = ROOT.TLatex()
+    latexCMS.SetNDC()
+    latexCMS.SetTextAlign(31) 
+    latexCMS.SetTextFont(42)
+    latexCMS.SetTextSize(0.5)
+    #print labels["lumi"]
+    norm = "\,\\mathrm{shape}"
+    if options.normalization == "xs":
+        norm = "\,\\mathrm{cross\,section}"
+
+    latexCMS.DrawLatex( 1-cur.GetRightMargin(), 0.15, labels["lumi"]+norm)
+    latexCMS.SetTextAlign(11) 
+    #latexCMS.DrawLatex( 0.08, 0.15, "\\mathrm{CMS}\,"+labels["preliminary"])
+    latexCMS.DrawLatex( 0.025, 0.15, "\\mathrm{CMS}\,"+labels["preliminary"])
+
+    cur.Update()
+
+
+    #ROOT.gPad.SetPad(.005, 0.05+0.1, .995, .995-0.1)
     # GetWh
     #cc.SetCanvasSize(cc.GetWw(), int(cc.GetWh()*1.3))
-    cc.SetCanvasSize(cc.GetWw()*2, cc.GetWh())
     todoVar = sorted(uncertaintySplitUp.keys())
     todoVar.remove("total")
     #todoVar.insert(0, "total") # plot first
     #cc.Divide(1,len(todoVar))
-    cc.Divide(2, (len(todoVar)+1)/2)
+    padsCC = cc.cd(2)
+    padsCC.Divide(2, (len(todoVar)+1)/2)
     gcFix = []
     prettyNames = {}
     prettyNames["jec"] = "JEC"
@@ -207,7 +277,7 @@ def main():
         y = array('d')
         xDown = array('d')
         xUp = array('d')
-        cc.cd(i+1)
+        padsCC.cd(i+1)
         print i,v
         for iPoint in xrange(uncertaintySplitUp[v].GetN()):
             totalUp = uncertaintySplitUp["total"].GetErrorYhigh(iPoint)
@@ -242,12 +312,15 @@ def main():
         uncRatio.SetFillColor(ROOT.kOrange-2)
         uncRatio.SetLineColor(ROOT.kOrange-2)
         uncRatio.Draw("2SAME")
+        frame.Draw("AXIS SAME")
         #uncRatio.Draw("A2")
         #uncertaintySplitUp[v].Draw("2SAME")
         #uncertaintySplitUp[v].Draw("A2")
         #print i,v
+
     cc.Print(indir+"/unc_{}.png".format(options.normalization))
     cc.Print(indir+"/unc_{}.pdf".format(options.normalization))
+
     #%%c.cd(1)
     #sys.exit()
 
@@ -273,7 +346,13 @@ def main():
     for t in [unc, central, genHistoHerwig, genHistoPythia]:
         maxima.append(t.GetMaximum())
 
+    minima = []
+    minima.append(uncResult["min"])
+    for t in [unc, central, genHistoHerwig, genHistoPythia]:
+        maxima.append(t.GetMinimum())
+
     c = ROOT.TCanvas()
+
     c.Divide(1,2)
     c.cd(1)
     split = 0.2
@@ -295,7 +374,7 @@ def main():
     #central.GetXaxis().SetRangeUser(5,8)
     #central.GetYaxis().SetRangeUser(0,250000)
 
-    central.GetYaxis().SetTitleOffset(1.8)
+    central.GetYaxis().SetTitleOffset(2.2)
     central.GetXaxis().SetTitleOffset(1.2)
     unc.Draw("2SAME")
     central.Draw("SAME")
@@ -314,21 +393,8 @@ def main():
     #genHistoPythia.SetMarkerStyle(21)
     genHistoPythia.SetLineWidth(2)
 
-    extra = {}
-    j1t = 35
-    j2t = 35
-    if options.variant.endswith("Asym"):
-        j2t = 45
-    if options.variant.endswith("Window"):
-        j2t = 55
 
-
-    extra["afterLumi"] = ",\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
-    extra["afterLumi"] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
-    if options.variant.endswith("Window"):
-        extra["afterLumi"] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
-
-    DrawMNPlots.banner(extra)
+    DrawMNPlots.banner(getExtra(options.variant))
 
     legendX2 = 1- ROOT.gPad.GetRightMargin()-0.02
     #print "XXX", legendX2
@@ -352,7 +418,7 @@ def main():
     DrawPlots.uniformFont(frame)
     frame.GetYaxis().SetNdivisions(505)
     frame.GetYaxis().SetTitle("#frac{MC}{data}")
-    frame.GetYaxis().SetTitleOffset(1.8)
+    frame.GetYaxis().SetTitleOffset(2.2)
     frame.GetXaxis().SetTitleOffset(5)
     frame.GetXaxis().SetTitle(central.GetXaxis().GetTitle())
     #frame.GetXaxis().SetRangeUser(5,8)
@@ -425,12 +491,15 @@ def main():
     pythiaRatio.Draw("SAME L")
 
 
+    frame.Draw("AXIS SAME")
+
     c.Print(indir+"/mergedUnfolded_{}.png".format(options.normalization))
     c.Print(indir+"/mergedUnfolded_{}.pdf".format(options.normalization))
     c.Print(indir+"/mergedUnfolded_{}.root".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
     central.SetMaximum(max(maxima)*1.5)
+    central.SetMinimum(min(minima)*0.7)
     legend.SetX1NDC(0.02 + ROOT.gPad.GetLeftMargin())
     legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
     legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())

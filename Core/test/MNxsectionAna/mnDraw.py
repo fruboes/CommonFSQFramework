@@ -92,21 +92,26 @@ class DrawMNPlots(DrawPlots):
         CommonFSQFramework.Core.Style.setTDRStyle()
 
     @staticmethod
-    def banner(extra={}):
+    def banner(extra={}, draw=True):
+        ret = {}
         latexCMS = ROOT.TLatex()
         latexCMS.SetNDC()
         latexCMS.SetTextFont(61)
         latexCMS.SetTextAlign(31) 
         cmsTextSize      = 0.75
         t = ROOT.gPad.GetTopMargin()
+        b = ROOT.gPad.GetBottomMargin()
 
         r = ROOT.gPad.GetRightMargin()
+        l = ROOT.gPad.GetLeftMargin()
+        #t,b,r,l = (0,0,0,0)
 
         text = "CMS"
         offX = 0.025
         offY = 0.1
         latexCMS.SetTextSize(t*cmsTextSize)
-        latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+        if draw:
+            latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
 
         #text = "\\rm \\mathcal{L}=5.36 pb^{-1}, \\sqrt{s}=7 TeV"
         #text = "\\rm 5.36 pb^{-1} (\\sqrt{s}=7 TeV)"
@@ -114,17 +119,36 @@ class DrawMNPlots(DrawPlots):
         if "afterLumi" in extra:
             text += extra["afterLumi"]
 
+        ret["lumi"] = text
 
         latexCMS.SetTextFont(42)
+        latexCMS.SetTextAlign(11) 
         latexCMS.SetTextSize(t*cmsTextSize*0.5)
-        latexCMS.DrawLatex( 1-r-offX, 1-t+0.025, text)
+        if draw:
+            #latexCMS.DrawLatex( 1-r-offX, 1-t+0.05, text)
+            latexCMS.DrawLatex( offX, 1-t+0.07, text)
+
+        # same font as "lumi" on top
+        if "bottomLeft" in extra:
+            text = extra["bottomLeft"]
+            if draw:
+                latexCMS.DrawLatex( l+0.125, b+0.03, text)
 
         text = "preliminary"
         latexCMS.SetTextFont(52)
         latexCMS.SetTextSize(t*cmsTextSize*0.6)
+        latexCMS.SetTextAlign(31) 
         offY = 0.15
+        ret["preliminary"] = text
 
-        latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+        if draw:
+            latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+        return ret
+        
+
+            
+
+
 
 
     @staticmethod
