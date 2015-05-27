@@ -41,7 +41,7 @@ def setStyle():
    # For the histo:
    tdrStyle.SetHistLineColor(1)
    tdrStyle.SetHistLineStyle(0)
-   tdrStyle.SetHistLineWidth(0) # xxx 1
+   tdrStyle.SetHistLineWidth(3) # xxx 1
    # tdrStyle.SetLegoInnerR(Float_t rad = 0.5)
    # tdrStyle.SetNumberContours(Int_t number = 20)
 

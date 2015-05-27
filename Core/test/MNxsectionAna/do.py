@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-import os
+import os,sys
 import fnmatch
 
 # note: dont touch todoCatAll variable, since rivet export in mergeUnfolded.py depends on it 
 #   (entry order matters, since it must be consistent with one in rivet routine!)
 todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"]
 todoCat = todoCatAll
-#todoCat = ["InclusiveBasic"]
+todoCat = ["InclusiveBasic"]
 #todoCat = ["MNBasic"]
 #todoCat = ["MNAsym", "InclusiveBasic"]
 #todoCat = ["MNWindow"]
@@ -15,10 +15,10 @@ todoCat = todoCatAll
 todoSteps = []
 #todoSteps.append("proof")
 #todoSteps.append("simpleMCplots")
-todoSteps.append("hadd")
+#todoSteps.append("hadd")
 #todoSteps.append("draw")
 #todoSteps.append("unfold")
-#todoSteps.append("merge")
+todoSteps.append("merge")
 #todoSteps.append("rivetExport")
 
 from optparse import OptionParser
@@ -54,7 +54,8 @@ def main():
                         infiles.append(file)
                 os.system("./hadd.py " + target + " " + " ".join(infiles) )
             elif step == "simpleMCplots":
-                todo=["ptHat"]
+                todo=[]
+                #todo=["ptHat"]
                 samples = ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6", "QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"]
                 triggers = ["jet15", "dj15fb"]
                 for t in todo:
@@ -81,7 +82,9 @@ def main():
 
 
             elif step == "unfold":
-                os.system("./unfoldMN.py -v {}".format(cat))
+                print "Starting unfold. This may take some time..."
+                sys.stdout.flush()
+                os.system("./unfoldMN.py -v {} 2>&1 > unfold_{}.log ".format(cat, cat))
             elif step == "merge":
                 if cat == "FWD11_002":
                     os.system("./mergeUnfoldedResult.py -v {} -n xs  -b -s 5.6".format(cat))

@@ -20,6 +20,7 @@ from HistosHelper import getHistos
 from mnDraw import DrawMNPlots 
 
 optionsReg = {}
+variant = "TODO"
 
 
 # note: this function should modify the histogram and return a pointer to it
@@ -72,7 +73,7 @@ def vary(histo):
         raise Exception("vary: unsupported object {} {}".format(histo.ClassName(), histo.GetName()))
 
 
-def doUnfold(measured, rooresponse, nIter = None):
+def doUnfold(measured, rooresponse, nIter = None, doChi2=False):
     global optionsReg
     if nIter == None:
         nIter = optionsReg["unfNIter"]
@@ -102,7 +103,13 @@ def doUnfold(measured, rooresponse, nIter = None):
     #errorTreatment = 3
     hReco= unfold.Hreco(errorTreatment)
 
-    chi2 = unfold.Chi2(rooresponse.Htruth(),errorTreatment)
+
+    #chi2 = unfold.Chi2(rooresponse.Htruth(),errorTreatment)
+    #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2/NDF")
+    chi2 = 0
+    if doChi2:
+        chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2")
+
     sys.stdout.flush()
 
     if hReco.GetNbinsX() != measured.GetNbinsX():
@@ -284,27 +291,63 @@ def unfold(action, infileName):
                 odirROOTfile.WriteTObject(hReco, rawName)
 
             # perform chi2 vs nIter scan (doesnt affect the final result
-            if "central" in variation:
+            if "Data" not in action and "central" in variation:
                 scanName = "chi2scan"+rawName
                 hScan = ROOT.TH1F(scanName, scanName+";iterations;#chi^{2}", 8, 0.5, 8.5)
                 hScan.GetYaxis().SetTitleOffset(1.8)
                 for i in xrange(1,9):
-                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i)[1]
+                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i, doChi2=True)[1]
                     iBin = hScan.FindBin(i)
                     hScan.SetBinContent(iBin, chi2)
                 canv = ROOT.TCanvas()
                 canv.SetLeftMargin(0.2)
                 hScan.Draw()
-                hScan.SetLineWidth(2)
+                hScan.SetLineWidth(3)
                 hScan.SetLineColor(4)
                 ROOT.gPad.SetTopMargin(0.1)
                 hScan.GetYaxis().SetTitleOffset(1.8)
                 #hScan.GetXaxis().SetTitleOffset(1.5)
 
                 #odirROOTfile.WriteTObject(hScan, scanName)
-                DrawMNPlots.banner()
+                extra = {}
+                mcName = "Pythia8"
+                if action.startswith("herwig"):
+                    mcName = "Herwig++"
+
+                if "dj15" in scanName:
+                    #extra2 = ",\,\\mathrm{forward-backward}"
+                    extra2 = "forward-backward"
+                else:
+                    #extra2 = ",\,\\mathrm{non\,forward-backward}"
+                    extra2 = "non forward-backward"
+                #extra2 += "\,\\mathrm{category}"
+                #extra["afterLumi"] = "\\mathrm{"+mcName+"}"+extra2
+                #extra["afterLumi"] = "\\text{"+mcName+"}"+extra2.replace("mathrm", "text")
+                #extra["afterLumi"] = mcName+extra2
+                extra["insteadOfPreliminary"] = "simulations"
+
+                '''
+                offX = 0.025
+                t = ROOT.gPad.GetTopMargin()
+                rr = ROOT.gPad.GetRightMargin()
+                latexCMS = ROOT.TLatex()
+                latexCMS.SetNDC()
+                latexCMS.SetTextFont(61)
+                latexCMS.SetTextFont(52)
+                cmsTextSize      = 0.4
+                latexCMS.SetTextSize(t*cmsTextSize*0.6)
+                latexCMS.SetTextAlign(31) 
+                offY = 0.20
+                latexCMS.DrawLatex( 1-rr-offX, 1-t-offY, "\\text{"+mcName+"}")
+                offY = 0.23
+                latexCMS.DrawLatex( 1-rr-offX, 1-t-offY, "\\text{"+extra2+"}")
+                '''
+                extra["line0"]= "\\text{"+mcName+"}"
+                extra["line1"]= "\\text{"+extra2+"}"
+
+                DrawMNPlots.banner(extra)
                 canv.Print(optionsReg["odir"]+"/chi2/{}_{}.png".format(action,scanName))
-                canv.Print(optionsReg["odir"]+"/chi2/{}_{}.pdf".format(action,scanName))
+                DrawMNPlots.toPDF(canv, optionsReg["odir"]+"/chi2/{}_{}.pdf".format(action,scanName))
 
             # now - toyMC approac to limited MC statistics
             #todo = ["response", "fakes", "truth", "measured"]
@@ -441,8 +484,21 @@ def compareMCGentoMCUnfolded(action, infileName):
         trueMax = max(genHisto.GetMaximum(), unfoldedHisto.GetMaximum())
         genHisto.SetMaximum(trueMax*1.07)
 
+        ROOT.gPad.SetTopMargin(0.095)
+        from mergeUnfoldedResult import getExtra
+        global variant
+        extra = getExtra(variant, isSim=True)
+        extra["insteadOfPreliminary"] = "simulations"
+        if t == "_dj15fb":
+            extra["cmsLogoPos"] = "left"
+
+
+        DrawMNPlots.banner(extra)
+
+        
+
         c.Print(optionsReg["odir"]+"/MConMCunfoldingTest_"+action+t+".png")
-        c.Print(optionsReg["odir"]+"/MConMCunfoldingTest_"+action+t+".pdf")
+        DrawMNPlots.toPDF(c, optionsReg["odir"]+"/MConMCunfoldingTest_"+action+t+".pdf")
 
 def main():
     CommonFSQFramework.Core.Style.setTDRStyle()
@@ -465,6 +521,8 @@ def main():
     if not options.variant:
         print "Provide analysis variant"
         sys.exit()
+    global variant
+    variant = options.variant
 
     infileName = "plotsMNxs_{}.root".format(options.variant)
     odir = "~/tmp/unfolded_{}/".format(options.variant)

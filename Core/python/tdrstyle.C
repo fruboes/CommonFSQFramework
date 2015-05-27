@@ -50,7 +50,7 @@ void setTDRStyle() {
   // tdrStyle->SetHistFillStyle(0);
   tdrStyle->SetHistLineColor(1);
   tdrStyle->SetHistLineStyle(0);
-  tdrStyle->SetHistLineWidth(1);
+  tdrStyle->SetHistLineWidth(3);
   // tdrStyle->SetLegoInnerR(Float_t rad = 0.5);
   // tdrStyle->SetNumberContours(Int_t number = 20);
 

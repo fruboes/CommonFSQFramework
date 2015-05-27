@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
@@ -14,8 +13,16 @@ from array import array
 from optparse import OptionParser
 import math
 
-import sys
-def getExtra(variant):    
+import sys, os
+
+
+def nextFreeLine(extra):
+    for i in xrange(0,5):
+        name = "line"+str(i)
+        if name not in extra:return name
+    return None
+
+def getExtra(variant, isSim = False):    
     extra = {}
     j1t = 35
     j2t = 35
@@ -25,19 +32,34 @@ def getExtra(variant):
         j2t = 55
 
 
-    extra["afterLumi"] = ",\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
-    extra["afterLumi"] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+    #extra["afterLumi"] = ",\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+    #extra["afterLumi"] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+        
+    if isSim:
+        extra["insteadOfPreliminary"] = "simulations"
+    else:
+        extra["insteadOfPreliminary"] = "preliminary"
+
+    if not isSim:
+        extra[nextFreeLine(extra)] = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+
+    cur = nextFreeLine(extra)
+    extra[cur] = "\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+    extra[cur] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
     if variant.endswith("Window"):
-        extra["afterLumi"] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
+        extra[nextFreeLine(extra)] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
 
     #extra["bottomLeft"] = "Inclusive"
     #if variant.startswith("MN"):
     #    extra["bottomLeft"] = "Mueller-Navelet like"
-    selType = "\\mathrm{inclusive}"
+    selType = "\\mathrm{inclusive~analysis}"
     if variant.startswith("MN"):
-       selType  = "\\mathrm{M.-N. like}"
+       selType  = "\\mathrm{M.-N.~like~analysis}"
 
-    extra["afterLumi"]+= ", "+selType
+    extra["selType"] = selType
+
+    #extra["afterLumi"]+= ", "+selType
+    extra[nextFreeLine(extra)] = selType
     return extra
 
 def main():
@@ -76,7 +98,6 @@ def main():
         print "Normalization not known. Possible choices: " + " ".join(norms)
         sys.exit()
 
-    indir = "~/tmp/unfolded_{}/".format(options.variant)
 
 
     (options, args) = parser.parse_args()
@@ -85,6 +106,10 @@ def main():
         sys.exit()
 
     indir = "~/tmp/unfolded_{}/".format(options.variant)
+    #oodir = indir.replace("/unfolded_", "/merged_")
+    oodir = indir
+    import os
+    os.system("mkdir -p "+ oodir)
     histofile = "plotsMNxs_{}.root".format(options.variant)
 
 
@@ -176,13 +201,16 @@ def main():
     central = central[0]
     central.GetXaxis().SetTitle("#Delta#eta")
     unit = "[pb]"
+    oneOverN = ""
     if options.normalization == "area":
-        unit = "[a.u.]"
+        #unit = "[a.u.]"
+        unit = ""
+        oneOverN = "#frac{1}{N} "
 
     if normalizeToBinWidth:
-        central.GetYaxis().SetTitle("#frac{d#sigma}{d(#Delta#eta)} "+unit)
+        central.GetYaxis().SetTitle(oneOverN+"#frac{d#sigma}{d(#Delta#eta)} "+unit)
     else:
-        central.GetYaxis().SetTitle("#sigma "+unit)
+        central.GetYaxis().SetTitle(oneOverN+"#sigma "+unit)
 
     uncert  = [finalSet["merged"][hName] for hName in finalSet["merged"].keys() if "_central_" not in hName ]
 
@@ -233,21 +261,24 @@ def main():
     fr.SetAxisColor(0,"Y")
     fr.GetXaxis().SetLabelColor(0)
     fr.GetYaxis().SetLabelColor(0)
-    labels = DrawMNPlots.banner(getExtra(options.variant), False)
     latexCMS = ROOT.TLatex()
     latexCMS.SetNDC()
     latexCMS.SetTextAlign(31) 
     latexCMS.SetTextFont(42)
     latexCMS.SetTextSize(0.5)
     #print labels["lumi"]
-    norm = "\,\\mathrm{shape}"
+    labels = getExtra(options.variant)
+    norm = ",\,"+labels["selType"].replace("~","\,") 
+    
     if options.normalization == "xs":
-        norm = "\,\\mathrm{cross\,section}"
+        norm += ",\,\\mathrm{cross\,section}"
+    else:
+        norm += ",\,\\mathrm{shape}"
 
-    latexCMS.DrawLatex( 1-cur.GetRightMargin(), 0.15, labels["lumi"]+norm)
+    latexCMS.DrawLatex( 1-cur.GetRightMargin(), 0.15, labels["line0"]+norm)
     latexCMS.SetTextAlign(11) 
     #latexCMS.DrawLatex( 0.08, 0.15, "\\mathrm{CMS}\,"+labels["preliminary"])
-    latexCMS.DrawLatex( 0.025, 0.15, "\\mathrm{CMS}\,"+labels["preliminary"])
+    latexCMS.DrawLatex( 0.025, 0.15, "\\mathrm{CMS}\,"+labels["insteadOfPreliminary"])
 
     cur.Update()
 
@@ -318,8 +349,8 @@ def main():
         #uncertaintySplitUp[v].Draw("A2")
         #print i,v
 
-    cc.Print(indir+"/unc_{}.png".format(options.normalization))
-    cc.Print(indir+"/unc_{}.pdf".format(options.normalization))
+    cc.Print(oodir+"/unc_{}.png".format(options.normalization))
+    DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
 
     #%%c.cd(1)
     #sys.exit()
@@ -379,22 +410,24 @@ def main():
     unc.Draw("2SAME")
     central.Draw("SAME")
     central.SetMarkerStyle(20)
-    central.SetMarkerSize(0.25)
+    central.SetMarkerSize(1)
 
     genHistoHerwig.Draw("SAME HIST")
     genHistoHerwig.SetLineColor(2)
     genHistoHerwig.SetMarkerColor(2)
     #genHistoHerwig.SetMarkerStyle(20)
-    genHistoHerwig.SetLineWidth(2)
+    genHistoHerwig.SetLineWidth(3)
 
     genHistoPythia.Draw("SAME HIST")
     genHistoPythia.SetLineColor(4)
     genHistoPythia.SetMarkerColor(4)
     #genHistoPythia.SetMarkerStyle(21)
-    genHistoPythia.SetLineWidth(2)
+    genHistoPythia.SetLineWidth(3)
 
 
-    DrawMNPlots.banner(getExtra(options.variant))
+    print DrawMNPlots.banner(getExtra(options.variant))
+
+
 
     legendX2 = 1- ROOT.gPad.GetRightMargin()-0.02
     #print "XXX", legendX2
@@ -402,13 +435,15 @@ def main():
     legendX1 = legendX2-legendWidth
     legendHeight = 0.35
 
-    legend = ROOT.TLegend(legendX1, ROOT.gPad.GetBottomMargin()+0.2, \
-                          legendX2, ROOT.gPad.GetBottomMargin()+0.2+legendHeight  )
+    legend = ROOT.TLegend(legendX1, ROOT.gPad.GetBottomMargin()+0.1, \
+                          legendX2, ROOT.gPad.GetBottomMargin()+0.1+legendHeight  )
     legend.SetFillColor(0)
     legend.AddEntry(central, "data", "pel")
     legend.AddEntry(unc, "syst. unc.", "f")
-    legend.AddEntry(genHistoHerwig, "herwig", "l")
-    legend.AddEntry(genHistoPythia, "pythia", "l")
+    #genHistoHerwig.SetLineStyle(9)
+    genHistoPythia.SetLineStyle(7)
+    legend.AddEntry(genHistoHerwig, DrawMNPlots.prettyMCName("herwig"), "l")
+    legend.AddEntry(genHistoPythia, DrawMNPlots.prettyMCName("pythia"), "l")
     legend.Draw("SAME")    
 
     c.cd(2)
@@ -493,9 +528,8 @@ def main():
 
     frame.Draw("AXIS SAME")
 
-    c.Print(indir+"/mergedUnfolded_{}.png".format(options.normalization))
-    c.Print(indir+"/mergedUnfolded_{}.pdf".format(options.normalization))
-    c.Print(indir+"/mergedUnfolded_{}.root".format(options.normalization))
+    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
+    c.Print(oodir+"/mergedUnfolded_{}.png".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
     central.SetMaximum(max(maxima)*1.5)
@@ -504,8 +538,8 @@ def main():
     legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
     legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
     legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
-    c.Print(indir+"/mergedUnfolded_{}_log.png".format(options.normalization))
-    c.Print(indir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
+    c.Print(oodir+"/mergedUnfolded_{}_log.png".format(options.normalization))
+    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
 
 
     # rivet export

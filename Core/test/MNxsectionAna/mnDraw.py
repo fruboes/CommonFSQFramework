@@ -92,6 +92,13 @@ class DrawMNPlots(DrawPlots):
         CommonFSQFramework.Core.Style.setTDRStyle()
 
     @staticmethod
+    def prettyMCName(mc):
+        if mc == "pythia": return "Pythia6"
+        if mc == "herwig": return "Herwig++"
+        raise Exception("Unkown mc: "+mc)
+        
+
+    @staticmethod
     def banner(extra={}, draw=True):
         ret = {}
         latexCMS = ROOT.TLatex()
@@ -106,27 +113,23 @@ class DrawMNPlots(DrawPlots):
         l = ROOT.gPad.GetLeftMargin()
         #t,b,r,l = (0,0,0,0)
 
-        text = "CMS"
-        offX = 0.025
-        offY = 0.1
-        latexCMS.SetTextSize(t*cmsTextSize)
-        if draw:
-            latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
-
         #text = "\\rm \\mathcal{L}=5.36 pb^{-1}, \\sqrt{s}=7 TeV"
         #text = "\\rm 5.36 pb^{-1} (\\sqrt{s}=7 TeV)"
-        text = "\\int L=5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        #text = "\\int L=5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        #text = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        #if "afterLumi" in extra:
+        #    text += extra["afterLumi"]
         if "afterLumi" in extra:
-            text += extra["afterLumi"]
+            raise Exception("TODO")
 
-        ret["lumi"] = text
+        #ret["lumi"] = text
 
         latexCMS.SetTextFont(42)
         latexCMS.SetTextAlign(11) 
         latexCMS.SetTextSize(t*cmsTextSize*0.5)
-        if draw:
-            #latexCMS.DrawLatex( 1-r-offX, 1-t+0.05, text)
-            latexCMS.DrawLatex( offX, 1-t+0.07, text)
+        offX = 0.025
+        #if draw:
+        #    latexCMS.DrawLatex( 1-r-offX, 1-t+0.05, text)
 
         # same font as "lumi" on top
         if "bottomLeft" in extra:
@@ -134,15 +137,43 @@ class DrawMNPlots(DrawPlots):
             if draw:
                 latexCMS.DrawLatex( l+0.125, b+0.03, text)
 
-        text = "preliminary"
+        latexCMS.SetTextAlign(31) 
+        posX =  1-r-offX
+        if "cmsLogoPos" in extra and extra["cmsLogoPos"] == "left":
+            latexCMS.SetTextAlign(11) 
+            # subs width of the frame
+            posX -=  (1.-r-l)  -0.075
+
+        text = "CMS"
+        offY = 0.1
+        latexCMS.SetTextSize(t*cmsTextSize)
+        latexCMS.SetTextFont(61)
+        if draw:
+            latexCMS.DrawLatex( posX, 1-t-offY, text)
+
+
         latexCMS.SetTextFont(52)
         latexCMS.SetTextSize(t*cmsTextSize*0.6)
-        latexCMS.SetTextAlign(31) 
-        offY = 0.15
-        ret["preliminary"] = text
 
-        if draw:
-            latexCMS.DrawLatex( 1-r-offX, 1-t-offY, text)
+        offY = 0.15
+
+        text = "preliminary"
+        if "insteadOfPreliminary" in extra:
+            text = extra["insteadOfPreliminary"]
+
+        ret["preliminary"] = text
+        if draw and text != None:
+            latexCMS.DrawLatex(posX, 1-t-offY, text)
+
+        for i in xrange(0,5):
+            name = "line"+str(i)
+            if name not in extra: continue
+            cmsTextSize      = 0.4
+            latexCMS.SetTextSize(t*cmsTextSize*0.6)
+            offY = 0.20+(i)*0.035
+            latexCMS.DrawLatex(posX, 1-t-offY, extra[name])
+
+
         return ret
         
 
@@ -185,7 +216,9 @@ class DrawMNPlots(DrawPlots):
 
 
     def decorate(self, canvas, dataHisto, MCStack, errBand, extra): # override
-        self.banner()
+        from mergeUnfoldedResult import getExtra
+        variant = self.infile.split("_")[-1].split(".")[0] # :(
+        self.banner(getExtra(variant))
 
         xLabels = self.xLabels()
         yLabels = self.yLabels()
@@ -219,7 +252,7 @@ class DrawMNPlots(DrawPlots):
             if "frame" in extra:
                 extra["frame"].GetXaxis().SetRangeUser(r[0], r[1])
 
-        dataHisto.GetYaxis().SetTitleOffset(1.8)
+        dataHisto.GetYaxis().SetTitleOffset(2)
         dataHisto.GetXaxis().SetTitleOffset(1.5)
 
         #MChistos = MCStack.GetHists()
@@ -240,6 +273,10 @@ class DrawMNPlots(DrawPlots):
 
         legendPos["jet15"]["default"] = (1-r-w-wOffset, b+hOffset, 1-r-wOffset, b+hOffset+h)
         legendPos["dj15fb"]["default"] = legendPos["jet15"]["default"]
+
+        legendPos["jet15"]["vtx"] = (1-r-w-wOffset, b+hOffset+0.2, 1-r-wOffset, b+hOffset+h+0.2)
+        legendPos["dj15fb"]["vtx"] = legendPos["jet15"]["vtx"]
+
         off = 0.2
         legendPos["dj15fb"]["etaLead"] = (0.6-off, 0.7, 0.9-off, 0.85)
         legendPos["dj15fb"]["etaSublead"] = legendPos["dj15fb"]["etaLead"]
@@ -270,17 +307,17 @@ class DrawMNPlots(DrawPlots):
             h.SetLineColor(4)
             h.SetMarkerStyle(22)
             h.Draw("SAME*P")
-            legend.AddEntry(h, self.MCLabel, "pel")
+            legend.AddEntry(h,  DrawMNPlots.prettyMCName(self.MCLabel), "pel")
             #print type(h.GetDrawOption())
             #h.SetOption("PE hist")
             #print h.GetDrawOption()
         
         legend.AddEntry(errBand, "syst. unc.", "f")
 
-        dataHisto.SetMarkerSize(0.3)
+        dataHisto.SetMarkerSize(1)
         dataHisto.SetMarkerStyle(8)
 
-        ROOT.gPad.SetTopMargin(0.1)
+        ROOT.gPad.SetTopMargin(0.12)
         #ROOT.gPad.SetRightMargin(0.07)
 
         legend.Draw("SAME")
@@ -298,7 +335,8 @@ if __name__ == "__main__":
 
     parser.add_option("-i", "--infile", action="store", type="string",  dest="infile" )
     parser.add_option("-o", "--outdir", action="store", type="string",  dest="outdir" )
-    parser.add_option("-v", "--variant", action="store", type="string",  dest="variant" ) # coma separated list of samples to skip
+    parser.add_option("-v", "--variant", action="store", type="string",  dest="variant" ) 
+    #parser.add_option("-x", "--variant4extra", action="store", type="string",  dest="variant4extra" ) 
     (options, args) = parser.parse_args()
 
     infile = "plotsMNxs.root"

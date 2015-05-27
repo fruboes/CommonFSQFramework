@@ -188,10 +188,10 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
         for shift in set(self.todoShifts+self.shiftsPU):
             for trg in todoTrg:
                 t = shift+trg
-                self.hist["ptLead"+t] =  ROOT.TH1F("ptLead"+t,   "ptLead"+t,  100, 0, 100)
-                self.hist["ptSublead"+t] =  ROOT.TH1F("ptSublead"+t,   "ptSublead"+t,  100, 0, 100)
-                self.hist["etaLead"+t] =  ROOT.TH1F("etaLead"+t,   "etaLead"+t,  100, -5, 5)
-                self.hist["etaSublead"+t] =  ROOT.TH1F("etaSublead"+t,   "etaSublead"+t,  100, -5, 5)
+                self.hist["ptLead"+t] =  ROOT.TH1F("ptLead"+t,   "ptLead"+t,  25, 0, 100)
+                self.hist["ptSublead"+t] =  ROOT.TH1F("ptSublead"+t,   "ptSublead"+t,  25, 0, 100)
+                self.hist["etaLead"+t] =  ROOT.TH1F("etaLead"+t,   "etaLead"+t,  50, -5, 5)
+                self.hist["etaSublead"+t] =  ROOT.TH1F("etaSublead"+t,   "etaSublead"+t,  50, -5, 5)
                 self.hist["xsVsDeltaEta"+t] =  ROOT.TH1F("xs"+t,   "xs"+t, len(binsNew)-1, binsNew)
                 self.hist["miss"+t] = self.hist["xsVsDeltaEta"+t].Clone("miss"+t)
 
@@ -593,6 +593,7 @@ if __name__ == "__main__":
     #maxFilesMC = 48
     #maxFilesMC = 1
     #maxFilesData = 1
+    #nWorkers = 12
     nWorkers = 40
     #maxFilesMC = 16
     #nWorkers = 12

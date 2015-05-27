@@ -103,7 +103,6 @@ def main():
         c = ROOT.TCanvas()
 
 
-    DrawMNPlots.banner()
     firstPass = True
 
 
@@ -114,21 +113,41 @@ def main():
     for h in toPlot.keys():   # not sure if h in toPlot will always give the same order as h in toPlot.keys()
         if firstPass:
             toPlot[h].Draw()
+            #from mergeUnfoldedResult import getExtra
+            #DrawMNPlots.banner(getExtra(options.variant))
             nameH = toPlot[h].GetName()
+            textExtra = ""
             xLab = yLab = ""
+            mc = "Pythia6"
+            if "herwig" in label: mc = "Herwig++"
             if "ptHat" == nameH:
                 xLab = "#hat{p}_{T}"
                 yLab = "events [a.u.]"
             elif "miss" in nameH:
+                textExtra += "Miss probability, {} MC".format(mc)
                 xLab = "#Delta #eta"
                 yLab = "p_{miss}"
                 toPlot[h].SetMinimum(0)
                 toPlot[h].SetMaximum(1)
             elif "fake" in nameH:
+                textExtra += "Fake probability, {} MC".format(mc)
                 xLab = "#Delta #eta"
                 yLab = "p_{fake}"
                 toPlot[h].SetMinimum(0)
                 toPlot[h].SetMaximum(1)
+
+
+            latexCMS = ROOT.TLatex()
+            latexCMS.SetNDC()
+            latexCMS.SetTextFont(41)
+            latexCMS.SetTextAlign(11) 
+            cmsTextSize      = 0.75
+            t = ROOT.gPad.GetTopMargin()
+            r = ROOT.gPad.GetRightMargin()
+            l = ROOT.gPad.GetLeftMargin()
+            latexCMS.SetTextSize(0.05)
+            latexCMS.DrawLatex( l+0.025, 1-t-0.075, textExtra)
+
 
 
             toPlot[h].GetXaxis().SetTitle(xLab)
@@ -170,15 +189,7 @@ def main():
         #frame.GetXaxis().SetRangeUser(5,8)
 
     c.Print(odir+"/"+ label + "simpleMCplot_{}_{}.png".format(labelRaw, options.variant))
-    c.Print(odir+"/"+ label + "simpleMCplot_{}_{}.pdf".format(labelRaw, options.variant))
-
-
-
-
-
-
-
-    #central = filter(lambda  finalSet["merged"])
+    DrawMNPlots.toPDF(c, odir+"/"+ label + "simpleMCplot_{}_{}.pdf".format(labelRaw, options.variant))
 
 if __name__ == "__main__":
     main()

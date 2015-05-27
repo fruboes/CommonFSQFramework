@@ -463,8 +463,8 @@ class DrawPlots():
                     self.decorate(c1, hData, MCStack, unc, extra)
 
                     c1.Print(self.outdir + "/" + targetCat + "_" + centralName+".png")
-                    c1.Print(self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".pdf")
-                    c1.Print(self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".root")
+                    DrawPlots.toPDF(c1, self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".pdf")
+                    #c1.Print(self.outdirOtherFormats + "/"+ targetCat + "_" + centralName+".root")
 
     @staticmethod
     def uniformFont(h):
@@ -474,6 +474,20 @@ class DrawPlots():
             t.SetLabelSize(20)
             t.SetTitleFont(44)
             t.SetTitleSize(20)
+
+    @staticmethod
+    def toPDF(c, filename):
+        #return
+        if not filename.endswith(".pdf"):
+            raise Exception("File with pdf extension expected")
+
+        epsFile = filename.replace(".pdf", ".eps")
+        c.Print(epsFile)
+        import os
+        os.system("ps2pdf -dEPSCrop -dSAFER -dPARANOIDSAFER "+epsFile + " " + filename)
+        os.system("rm "+epsFile)
+
+
 
 
 if __name__ == "__main__":
