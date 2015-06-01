@@ -95,6 +95,9 @@ class DrawMNPlots(DrawPlots):
     def prettyMCName(mc):
         if mc == "pythia": return "Pythia6"
         if mc == "herwig": return "Herwig++"
+        if mc == "hej": return "HEJ"
+        if mc == "powheg": return "POWHEG"
+
         raise Exception("Unkown mc: "+mc)
         
 

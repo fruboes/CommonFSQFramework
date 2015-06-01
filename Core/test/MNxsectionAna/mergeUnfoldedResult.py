@@ -14,7 +14,36 @@ from optparse import OptionParser
 import math
 
 import sys, os
+def getRivetName(variant, normalization):
+    from do import todoCatAll
+    if len(todoCatAll) != 6:
+        raise Exception("Error: inconsistent number of categories in todoCatAll")
+    rivetNum = todoCatAll.index(variant)+1
+    if "area" == normalization:
+        rivetNum += 10
+    numAsStr = str(rivetNum)
+    if len (numAsStr) == 1:
+        numAsStr = "0"+numAsStr
 
+    rivetName = "d"+numAsStr+"-x01-y01"
+    print normalization, rivetNum, rivetName
+    return rivetName
+
+def getHistoFromYoda(yodaFile, histoName):
+    y2a = "/cvmfs/cms.cern.ch/slc6_amd64_gcc481/external/yoda/1.3.0-cms/bin/yoda2aida"
+    a2r = "/cvmfs/cms.cern.ch/slc6_amd64_gcc481/external/rivet/1.8.2-cms8/bin/aida2root"
+    os.system(y2a+ " "+ yodaFile + " /tmp/rivetImport.aida")
+    os.system(a2r+ " /tmp/rivetImport.aida")
+    f = ROOT.TFile("rivetImport.root")
+    for i in xrange(1,4):
+        hh = f.Get(histoName+";"+str(i))
+        axMax =  hh.GetXaxis().GetXmax() 
+        if axMax > 9 and axMax < 10:
+            break
+
+    h = hh.Clone()
+    h.SetDirectory(0)
+    return h
 
 def nextFreeLine(extra):
     for i in xrange(0,5):
@@ -350,7 +379,7 @@ def main():
         #print i,v
 
     cc.Print(oodir+"/unc_{}.png".format(options.normalization))
-    DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
+    #DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
 
     #%%c.cd(1)
     #sys.exit()
@@ -372,14 +401,20 @@ def main():
         map(lambda h: h.Scale(1, "width"), [genHistoPythia, genHistoHerwig] )
     map(lambda h: h.Scale(scaleExtra), [genHistoPythia, genHistoHerwig] )
 
+    rivetName = getRivetName(options.variant, options.normalization)
+    hej =  getHistoFromYoda("fromRivet/hej_hepmc-jets-jetptmin=25-extraptmin=20-CT10nlo_Job_merged.yoda", rivetName)
+    powheg = getHistoFromYoda("fromRivet/powheg-jets-sqrts=7000-kt5-herapdf-CUETP8-herapdf-P0-rivet2_merged.yoda", rivetName)
+
     maxima = []
     maxima.append(uncResult["max"])
-    for t in [unc, central, genHistoHerwig, genHistoPythia]:
+    for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
         maxima.append(t.GetMaximum())
+
+
 
     minima = []
     minima.append(uncResult["min"])
-    for t in [unc, central, genHistoHerwig, genHistoPythia]:
+    for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
         maxima.append(t.GetMinimum())
 
     c = ROOT.TCanvas()
@@ -427,6 +462,25 @@ def main():
 
     print DrawMNPlots.banner(getExtra(options.variant))
 
+    hej.Draw("SAME HIST")
+    powheg.Draw("SAME HIST")
+
+    hej.SetLineWidth(3)
+    hej.SetLineColor(8)
+    hej.SetMarkerColor(3)
+
+    powheg.SetLineWidth(3)
+    powheg.SetLineColor(2)
+    powheg.SetMarkerColor(6)
+
+    ROOT.gStyle.SetLineStyleString(11, "10 15")
+    ROOT.gStyle.SetLineStyleString(12, "20 20")
+    ROOT.gStyle.SetLineStyleString(13, "40 20")
+    
+    genHistoPythia.SetLineStyle(13)
+    powheg.SetLineStyle(12)
+    hej.SetLineStyle(11)
+
 
 
     legendX2 = 1- ROOT.gPad.GetRightMargin()-0.02
@@ -441,9 +495,11 @@ def main():
     legend.AddEntry(central, "data", "pel")
     legend.AddEntry(unc, "syst. unc.", "f")
     #genHistoHerwig.SetLineStyle(9)
-    genHistoPythia.SetLineStyle(7)
+
     legend.AddEntry(genHistoHerwig, DrawMNPlots.prettyMCName("herwig"), "l")
     legend.AddEntry(genHistoPythia, DrawMNPlots.prettyMCName("pythia"), "l")
+    legend.AddEntry(powheg, DrawMNPlots.prettyMCName("powheg"), "l")
+    legend.AddEntry(hej, DrawMNPlots.prettyMCName("hej"), "l")
     legend.Draw("SAME")    
 
     c.cd(2)
@@ -528,7 +584,7 @@ def main():
 
     frame.Draw("AXIS SAME")
 
-    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
+    #DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
     c.Print(oodir+"/mergedUnfolded_{}.png".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
@@ -539,23 +595,15 @@ def main():
     legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
     legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
     c.Print(oodir+"/mergedUnfolded_{}_log.png".format(options.normalization))
-    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
+    #DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
 
 
     # rivet export
-    from do import todoCatAll
-    if len(todoCatAll) != 6:
-        raise Exception("Error: inconsistent number of categories in todoCatAll")
-    rivet = ROOT.TFile("toRivet.root", "RECREATE")
-    rivetNum = todoCatAll.index(options.variant)+1
-    if "area" == options.normalization:
-        rivetNum += 10
-    numAsStr = str(rivetNum)
-    if len (numAsStr) == 1:
-        numAsStr = "0"+numAsStr
 
-    rivetName = "d"+numAsStr+"-x01-y01"
-    print options.normalization, rivetNum, rivetName
+    rivet = ROOT.TFile("toRivet.root", "RECREATE")
+    rivetName = getRivetName(options.variant, options.normalization)
+
+
     rivet.WriteTObject(result4Rivet, rivetName)
     rivet.Close()
     del rivet
