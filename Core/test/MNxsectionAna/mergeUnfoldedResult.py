@@ -70,7 +70,8 @@ def getExtra(variant, isSim = False):
         extra["insteadOfPreliminary"] = "preliminary"
 
     if not isSim:
-        extra[nextFreeLine(extra)] = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        #extra[nextFreeLine(extra)] = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        extra[nextFreeLine(extra)] = "5.4\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
 
     cur = nextFreeLine(extra)
     extra[cur] = "\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
@@ -379,7 +380,7 @@ def main():
         #print i,v
 
     cc.Print(oodir+"/unc_{}.png".format(options.normalization))
-    #DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
+    DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
 
     #%%c.cd(1)
     #sys.exit()
@@ -470,7 +471,7 @@ def main():
     hej.SetMarkerColor(3)
 
     powheg.SetLineWidth(3)
-    powheg.SetLineColor(2)
+    powheg.SetLineColor(ROOT.kMagenta+1)
     powheg.SetMarkerColor(6)
 
     ROOT.gStyle.SetLineStyleString(11, "10 15")
@@ -578,13 +579,22 @@ def main():
     pythiaRatio = genHistoPythia.Clone()
     pythiaRatio.Divide(central)
 
+    hejRatio = hej.Clone()
+    powhegRatio = powheg.Clone()
+    hejRatio.Divide(central)
+    powhegRatio.Divide(central)
+
+
     herwigRatio.Draw("SAME L")
     pythiaRatio.Draw("SAME L")
+    powhegRatio.Draw("SAME L")
+    hejRatio.Draw("SAME L")
+
 
 
     frame.Draw("AXIS SAME")
 
-    #DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
+    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
     c.Print(oodir+"/mergedUnfolded_{}.png".format(options.normalization))
     c.cd(1)
     ROOT.gPad.SetLogy()
@@ -595,7 +605,7 @@ def main():
     legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
     legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
     c.Print(oodir+"/mergedUnfolded_{}_log.png".format(options.normalization))
-    #DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
+    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
 
 
     # rivet export
