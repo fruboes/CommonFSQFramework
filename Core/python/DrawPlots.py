@@ -405,7 +405,7 @@ class DrawPlots():
                         hSumRatio = hSum.Clone()
                         hSumRatio.Divide(central)
 
-                        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0.3, central.GetXaxis().GetXmax(), 1.7)
+                        frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0.1, central.GetXaxis().GetXmax(), 1.9)
                         frame.GetYaxis().SetNdivisions(505)
                         frame.GetYaxis().SetTitle("#frac{MC}{data}")
                         #frame.GetYaxis().SetTitleOffset(central.GetYaxis().GetTitleOffset()*1.5)
@@ -477,7 +477,6 @@ class DrawPlots():
 
     @staticmethod
     def toPDF(c, filename):
-        #return
         if not filename.endswith(".pdf"):
             raise Exception("File with pdf extension expected")
 
