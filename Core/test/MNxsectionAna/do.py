@@ -4,11 +4,12 @@ import fnmatch
 
 # note: dont touch todoCatAll variable, since rivet export in mergeUnfolded.py depends on it 
 #   (entry order matters, since it must be consistent with one in rivet routine!)
-todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"]
+todoCatAll = ["InclusiveBasic", "InclusiveAsym", "InclusiveWindow", "MNBasic", "MNAsym", "MNWindow"] # Cant touch this...
 todoCat = todoCatAll
 todoCat = ["InclusiveBasic"]
 #todoCat = ["MNBasic"]
 #todoCat = ["MNAsym", "InclusiveBasic"]
+#todoCat = ["MNAsym"]
 #todoCat = ["MNWindow"]
 #todoCat = ["FWD11_002"]
 #todoCat = ["InclusiveBasic"]
@@ -17,8 +18,8 @@ todoSteps = []
 #todoSteps.append("simpleMCplots")
 #todoSteps.append("hadd")
 #todoSteps.append("draw")
-#todoSteps.append("unfold")
-todoSteps.append("merge")
+todoSteps.append("unfold")
+#todoSteps.append("merge")
 #todoSteps.append("rivetExport")
 
 from optparse import OptionParser

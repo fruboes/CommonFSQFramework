@@ -142,10 +142,13 @@ class DrawMNPlots(DrawPlots):
 
         latexCMS.SetTextAlign(31) 
         posX =  1-r-offX
-        if "cmsLogoPos" in extra and extra["cmsLogoPos"] == "left":
-            latexCMS.SetTextAlign(11) 
-            # subs width of the frame
-            posX -=  (1.-r-l)  -0.075
+        if "cmsLogoPos" in extra :
+            if extra["cmsLogoPos"] == "left":
+                latexCMS.SetTextAlign(11) 
+                # subs width of the frame
+                posX -=  (1.-r-l)  -0.075
+            if  extra["cmsLogoPos"] == "centralright":
+                posX -= 0.2
 
         text = "CMS"
         offY = 0.1
@@ -201,8 +204,8 @@ class DrawMNPlots(DrawPlots):
     def xRangeUser():
         ret = {}
         ret["vtx"] = (0.5, 6.5)
-        ret["ptLead"] = (34.5, 99.5)
-        ret["ptSublead"] = (34.5, 99.5)
+        ret["ptLead"] = (36, 99.5)
+        ret["ptSublead"] = (36, 80)
         return ret
 
     @staticmethod
@@ -221,18 +224,26 @@ class DrawMNPlots(DrawPlots):
     def decorate(self, canvas, dataHisto, MCStack, errBand, extra): # override
         from mergeUnfoldedResult import getExtra
         variant = self.infile.split("_")[-1].split(".")[0] # :(
-        self.banner(getExtra(variant))
-
-        xLabels = self.xLabels()
-        yLabels = self.yLabels()
 
         name = dataHisto.GetName()
         nameShort = "default"
-
-
         nspl = name.split("_")
         if len(nspl) > 0:
             nameShort = nspl[0]
+
+        if name.startswith("eta"):
+            extra4banner = getExtra(variant, extraSplit="dj15" not in name)
+            if "dj15" in name:
+                extra4banner["cmsLogoPos"] = "centralright"
+        else:
+            extra4banner = getExtra(variant)
+        if nameShort in ["xs","xxx"] and "dj15" in name:
+            extra4banner["cmsLogoPos"] = "left"
+
+        self.banner(extra4banner)
+
+        xLabels = self.xLabels()
+        yLabels = self.yLabels()
 
         if nameShort in xLabels:
             dataHisto.GetXaxis().SetTitle(xLabels[nameShort])
@@ -277,14 +288,16 @@ class DrawMNPlots(DrawPlots):
         legendPos["jet15"]["default"] = (1-r-w-wOffset, b+hOffset, 1-r-wOffset, b+hOffset+h)
         legendPos["dj15fb"]["default"] = legendPos["jet15"]["default"]
 
-        legendPos["jet15"]["vtx"] = (1-r-w-wOffset, b+hOffset+0.2, 1-r-wOffset, b+hOffset+h+0.2)
+        legendPos["jet15"]["vtx"] = (1-r-w-wOffset, b+hOffset+0.1, 1-r-wOffset, b+hOffset+h+0.1)
         legendPos["dj15fb"]["vtx"] = legendPos["jet15"]["vtx"]
+        #legendPos["dj15fb"]["vtx"] = (1-r-w-wOffset, b+hOffset+0.1, 1-r-wOffset, b+hOffset+h+0.1)
 
         off = 0.2
-        legendPos["dj15fb"]["etaLead"] = (0.6-off, 0.7, 0.9-off, 0.85)
+        offY = 0.5
+        legendPos["dj15fb"]["etaLead"] = (0.6-off, 0.7-offY, 0.9-off, 0.85-offY)
         legendPos["dj15fb"]["etaSublead"] = legendPos["dj15fb"]["etaLead"]
-        off = 0.3
-        legendPos["dj15fb"]["xs"] = (0.6-off, 0.7, 0.9-off, 0.85)
+        off = 0.4
+        legendPos["dj15fb"]["xs"] = (0.6-off, 0.2, 0.9-off, 0.35)
 
         off = 0.2
         offY=0.55

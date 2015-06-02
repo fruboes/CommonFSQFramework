@@ -51,7 +51,7 @@ def nextFreeLine(extra):
         if name not in extra:return name
     return None
 
-def getExtra(variant, isSim = False):    
+def getExtra(variant, isSim = False, extraSplit = False):    
     extra = {}
     j1t = 35
     j2t = 35
@@ -74,8 +74,12 @@ def getExtra(variant, isSim = False):
         extra[nextFreeLine(extra)] = "5.4\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
 
     cur = nextFreeLine(extra)
-    extra[cur] = "\,\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
-    extra[cur] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+    extra[cur] = "\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+    if not extraSplit:
+        extra[cur] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+    else:
+        cur = nextFreeLine(extra)
+        extra[cur] = "\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
     if variant.endswith("Window"):
         extra[nextFreeLine(extra)] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
 

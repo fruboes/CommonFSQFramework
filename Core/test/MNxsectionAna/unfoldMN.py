@@ -73,7 +73,7 @@ def vary(histo):
         raise Exception("vary: unsupported object {} {}".format(histo.ClassName(), histo.GetName()))
 
 
-def doUnfold(measured, rooresponse, nIter = None, doChi2=False):
+def doUnfold(measured, rooresponse, nIter = None, doChi2=False, action = None):
     global optionsReg
     if nIter == None:
         nIter = optionsReg["unfNIter"]
@@ -104,13 +104,67 @@ def doUnfold(measured, rooresponse, nIter = None, doChi2=False):
     hReco= unfold.Hreco(errorTreatment)
 
 
-    #chi2 = unfold.Chi2(rooresponse.Htruth(),errorTreatment)
     #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2/NDF")
-    chi2 = 0
+    chi2 = 0.
     if doChi2:
-        chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2")
+        #print "XXX"
+        #os.system("echo " + measured.GetName() + " > tt.txt")
+        #1..15
+        #13...15
+        #'''
+        if action.startswith("herwig"):
+            norm = 1569.02131541
+        elif action.startswith("pythia"):
+            norm = 443.366136684
 
-    sys.stdout.flush()
+        '''    
+        low = 1
+        print measured.GetName()
+        if "dj15" in measured.GetName():
+            low = 13
+            #norm = 0.026653
+        for i in xrange(low, 16):
+            v1 = rooresponse.Htruth().GetBinContent(i)
+            e1 = rooresponse.Htruth().GetBinError(i)
+            v2 = hReco.GetBinContent(i)
+            e2 = hReco.GetBinError(i)
+
+            if e2 > 0:
+                #val = ( (v1-v2)/math.sqrt(e1*e1+e2*e2)  )**2
+                val = ( (v1*norm-v2)/e2  )**2
+                #print "Bin", i, v1, v2, v1-v2, e1, val
+                chi2 += val
+        #'''
+        '''
+        h1 = ROOT.TH1D(); rooresponse.Htruth().Clone().Copy(h1)
+        h2 = ROOT.TH1D(); hReco.Clone().Copy(h2)
+        if "dj15" in measured.GetName():
+            for i in xrange(1, 13):
+                h1.SetBinContent(i,0)
+                h1.SetBinError(i,0)
+                h2.SetBinContent(i,0)
+                h2.SetBinError(i,0)
+
+        for i in xrange(1, h1.GetNbinsX()+1):
+            h1.SetBinError(i,0)
+        
+
+        chi2 = h1.Chi2Test(h2, "WW CHI2")
+        #chi2 = h2.Chi2Test(h1, "WW CHI2")
+        #'''
+
+
+
+
+        #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2")
+        #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "UW CHI2") # bad?
+        #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "UU NORM CHI2") # bad?
+        #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "CHI2")
+
+        truth = rooresponse.Htruth().Clone()
+        truth.Scale(norm)
+        chi2 = unfold.Chi2(truth,errorTreatment)
+
 
     if hReco.GetNbinsX() != measured.GetNbinsX():
         raise Exception("Different histogram sizes after unfolding")
@@ -255,7 +309,7 @@ def unfold(action, infileName):
             print "Doing: ", c, r, variation
             rawName = "xsunfolded_" + variation+ c
             sys.stdout.flush()
-        
+
             '''
             histoWithChangedErrors = histo.Clone()
             for i in xrange(histoWithChangedErrors.GetNbinsX()+2):
@@ -296,7 +350,7 @@ def unfold(action, infileName):
                 hScan = ROOT.TH1F(scanName, scanName+";iterations;#chi^{2}", 8, 0.5, 8.5)
                 hScan.GetYaxis().SetTitleOffset(1.8)
                 for i in xrange(1,9):
-                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i, doChi2=True)[1]
+                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i, doChi2=True, action = action)[1]
                     iBin = hScan.FindBin(i)
                     hScan.SetBinContent(iBin, chi2)
                 canv = ROOT.TCanvas()
@@ -310,7 +364,7 @@ def unfold(action, infileName):
 
                 #odirROOTfile.WriteTObject(hScan, scanName)
                 extra = {}
-                mcName = "Pythia8"
+                mcName = "Pythia6"
                 if action.startswith("herwig"):
                     mcName = "Herwig++"
 
@@ -506,8 +560,8 @@ def main():
     optionsReg["alaGri"] = True
     optionsReg["ntoys"]  = 1000
     optionsReg["unfNIter"]  = 3
-    optionsReg["disableToys"]  = False
-    #optionsReg["disableToys"]  = True
+    #optionsReg["disableToys"]  = False
+    optionsReg["disableToys"]  = True
     
     parser = OptionParser(usage="usage: %prog [options] filename",
                             version="%prog 1.0")
@@ -531,6 +585,7 @@ def main():
     optionsReg["odir"] = odir
 
     #possibleActions = ["pythiaOnPythia",  "herwigOnPythia", "pythiaOnHerwig", "herwigOnHerwig"]
+    #possibleActions = ["pythiaOnPythia"]
     for action in possibleActions:
         unfold(action, infileName)
         compareMCGentoMCUnfolded(action, infileName)
