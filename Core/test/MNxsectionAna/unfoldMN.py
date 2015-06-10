@@ -503,11 +503,18 @@ def unfold(action, infileName):
 def compareMCGentoMCUnfolded(action, infileName):
     if action == "herwigOnPythia" or action == "pythiaOnPythia":
         unfoldingWasDoneOn = "QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"
+        doneOnShort = "Pythia6"
     elif action == "pythiaOnHerwig" or action == "herwigOnHerwig":
         unfoldingWasDoneOn = "QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp"
+        doneOnShort = "Herwig++"
     else:
         print "compareMCGentoMCUnfolded: wrong action", action, "skipping (usually you can ignore this message)"
         return
+
+    if action.startswith("herwig"):
+        responseFrom = "Herwig++"
+    elif action.startswith("pythia"):
+        responseFrom = "Pythia6"
 
     # detaGen_central_jet15
     fileWithUnfoldedPlotsName = optionsReg["odir"]+"/mnxsHistos_unfolded_"+action +".root"
@@ -539,16 +546,26 @@ def compareMCGentoMCUnfolded(action, infileName):
         genHisto.SetMaximum(trueMax*1.07)
 
         ROOT.gPad.SetTopMargin(0.095)
-        from mergeUnfoldedResult import getExtra
+        from mergeUnfoldedResult import getExtra, nextFreeLine
         global variant
         extra = getExtra(variant, isSim=True)
         extra["insteadOfPreliminary"] = "simulations"
         if t == "_dj15fb":
             extra["cmsLogoPos"] = "left"
 
+        extra[nextFreeLine(extra)] = "response built using "+responseFrom
+
 
         DrawMNPlots.banner(extra)
 
+        if "dj15" in t:
+            xOff = 0
+        else:
+            xOff = 0.45
+        leg = ROOT.TLegend(0.2+xOff, 0.35, 0.5+xOff, 0.5)
+        leg.AddEntry(genHisto, "Gen.level - " + doneOnShort, "lep")
+        leg.AddEntry(unfoldedHisto, "Unfolded - " + doneOnShort, "lep")
+        leg.Draw("SAME")
         
 
         c.Print(optionsReg["odir"]+"/MConMCunfoldingTest_"+action+t+".png")
@@ -560,8 +577,8 @@ def main():
     optionsReg["alaGri"] = True
     optionsReg["ntoys"]  = 1000
     optionsReg["unfNIter"]  = 3
-    #optionsReg["disableToys"]  = False
-    optionsReg["disableToys"]  = True
+    optionsReg["disableToys"]  = False
+    #optionsReg["disableToys"]  = True
     
     parser = OptionParser(usage="usage: %prog [options] filename",
                             version="%prog 1.0")
