@@ -51,7 +51,7 @@ def nextFreeLine(extra):
         if name not in extra:return name
     return None
 
-def getExtra(variant, isSim = False, extraSplit = False):    
+def getExtra(variant, isSim = False, extraSplit = False, lumiVal = None):    
     extra = {}
     j1t = 35
     j2t = 35
@@ -71,7 +71,10 @@ def getExtra(variant, isSim = False, extraSplit = False):
 
     if not isSim:
         #extra[nextFreeLine(extra)] = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
-        extra[nextFreeLine(extra)] = "5.4\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        if not lumiVal:
+            extra[nextFreeLine(extra)] = "5.4\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
+        else:
+            extra[nextFreeLine(extra)] = lumiVal + "\,(7\,\\mathrm{TeV})"
 
     cur = nextFreeLine(extra)
     extra[cur] = "\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 

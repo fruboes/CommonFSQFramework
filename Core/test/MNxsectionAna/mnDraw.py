@@ -231,14 +231,20 @@ class DrawMNPlots(DrawPlots):
         if len(nspl) > 0:
             nameShort = nspl[0]
 
+        if "dj15" in name:
+            lumiVal = "5.36\,\\mathrm{pb}^{-1}"
+        else:
+            lumiVal = "26.7\,\\mathrm{nb}^{-1}"
+
         if name.startswith("eta"):
-            extra4banner = getExtra(variant, extraSplit="dj15" not in name)
+            extra4banner = getExtra(variant, extraSplit="dj15" not in name, lumiVal=lumiVal)
             if "dj15" in name:
                 extra4banner["cmsLogoPos"] = "centralright"
         else:
-            extra4banner = getExtra(variant)
+            extra4banner = getExtra(variant, lumiVal=lumiVal)
         if nameShort in ["xs","xxx"] and "dj15" in name:
             extra4banner["cmsLogoPos"] = "left"
+
 
         self.banner(extra4banner)
 
