@@ -4,6 +4,7 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 from ROOT import *
 from  CommonFSQFramework.Core.BetterJetGetter import BetterJetGetter
+import CommonFSQFramework.Core.Style
 
 
 from array import array 
@@ -286,26 +287,35 @@ class HLTMCWeighter:
         #ROOT.gStyle.SetPadTopMargin(0.05)
         ROOT.gStyle.SetPadBottomMargin(0.10)
         ROOT.gStyle.SetPadLeftMargin(0.10)
+        ROOT.gStyle.SetPadTopMargin(0.10)
         ROOT.gStyle.SetPadRightMargin(0.125)
 
         #ROOT.gStyle.SetPalette(1)
         self.set_palette()
         ROOT.gStyle.SetOptStat(0)
         c = ROOT.TCanvas("cc")
-        self.efficiencyHisto.SetXTitle("p_{T}^{raw}")
+        self.efficiencyHisto.SetXTitle("p_{T}^{jet}")
         self.efficiencyHisto.SetYTitle("#eta_{jet}")
         self.efficiencyHisto.Draw("COLZ")
-        c.Print("~/tmp/HLTMCWeighter_"+name+".png")
-        rf = ROOT.TFile("~/tmp/HLTMCWeighter_"+name+".root", "RECREATE")
 
-        todo = [ self.efficiencyHisto,  self.nom,  self.denom]
-        for t in todo:
-            t.Write()
+        latexCMS = ROOT.TLatex()
+        latexCMS.SetNDC()
+        latexCMS.SetTextFont(42)
+        latexCMS.SetTextAlign(31) 
+        latexCMS.DrawLatex(0.9, 0.92, "CMS preliminary")
+
+
+        c.Print("~/tmp/HLTMCWeighter_"+name+".pdf")
+        #rf = ROOT.TFile("~/tmp/HLTMCWeighter_"+name+".root", "RECREATE")
+
+        #todo = [ self.efficiencyHisto,  self.nom,  self.denom]
+        #for t in todo:
+        #    t.Write()
 
 
 if __name__ == "__main__":
+    CommonFSQFramework.Core.Style.setTDRStyle()
 
-    setStyle()
     '''
     weighter = HLTMCWeighter("HLT_Jet15U_raw", period="A")
     weighter.dumpEfficiencyHisto("Jet15U_raw_A")
@@ -328,10 +338,10 @@ if __name__ == "__main__":
     weighter.dumpEfficiencyHisto("DoubleJet15U_ForwardBackward_L1Seeding_raw")
     weighter = HLTMCWeighter("HLT_DoubleJet15U_ForwardBackward_raw")
     weighter.dumpEfficiencyHisto("DoubleJet15U_ForwardBackward_raw")
-    #weighter = HLTMCWeighter("HLT_Jet15U_L1Seeding_raw")
-    #weighter.dumpEfficiencyHisto("Jet15U_L1Seeding_raw")
-    #weighter = HLTMCWeighter("HLT_Jet15U_raw")
-    #weighter.dumpEfficiencyHisto("Jet15U_raw")
+    weighter = HLTMCWeighter("HLT_Jet15U_L1Seeding_raw")
+    weighter.dumpEfficiencyHisto("Jet15U_L1Seeding_raw")
+    weighter = HLTMCWeighter("HLT_Jet15U_raw")
+    weighter.dumpEfficiencyHisto("Jet15U_raw")
 
     '''
     periods = ["A","B"]
