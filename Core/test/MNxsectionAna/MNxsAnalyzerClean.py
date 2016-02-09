@@ -196,6 +196,7 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                 self.hist["miss"+t] = self.hist["xsVsDeltaEta"+t].Clone("miss"+t)
 
                 self.hist["vtx"+t] =  ROOT.TH1F("vtx"+t,   "vtx"+t,  10, -0.5, 9.5)
+                self.hist["vtxNoPUW"+t] =  ROOT.TH1F("vtxNoPUW"+t,   "vtxNoPUW"+t,  10, -0.5, 9.5)
 
                 if self.unfoldEnabled:
                     dummy = ROOT.TH2F("dummy"+t, "dummy"+t, len(binsNew)-1, binsNew, len(binsNew)-1, binsNew)
@@ -431,6 +432,7 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                     topology = self.topology(j1, j2)
                     weight = {}
                     if self.isData:
+                        weightPU = 1.
                         if topology == "_jet15":
                             hasTrigger = self.fChain.jet15 > 0.5
                             weight["_central"] = 1
@@ -463,6 +465,8 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                         self.hist["etaSublead"+histoName].Fill(ptSorted[1].eta(), weight[w])
                         self.hist["xsVsDeltaEta"+histoName].Fill(detaDet, weight[w])
                         self.hist["vtx"+histoName].Fill(self.fChain.ngoodVTX, weight[w])
+                        if weightPU > 0:
+                            self.hist["vtxNoPUW"+histoName].Fill(self.fChain.ngoodVTX, weight[w]/weightPU)
 
                     # todo: fill detLevel Histograms
                     # for MC - check if there is a matching pair, save result inside matchedPairs set
@@ -583,8 +587,8 @@ if __name__ == "__main__":
     sampleList = []
     sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
     sampleList.append("QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp")
-    #'''
     sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
+    #'''
     sampleList.append("Jet-Run2010B-Apr21ReReco-v1")
     sampleList.append("JetMET-Run2010A-Apr21ReReco-v1")
     sampleList.append("METFwd-Run2010B-Apr21ReReco-v1")
@@ -594,7 +598,7 @@ if __name__ == "__main__":
     #maxFilesMC = 1
     #maxFilesData = 1
     #nWorkers = 12
-    nWorkers = 40
+    nWorkers = 34
     #maxFilesMC = 16
     #nWorkers = 12
     #nWorkers = 10
