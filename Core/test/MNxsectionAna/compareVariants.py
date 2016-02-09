@@ -49,7 +49,12 @@ def compareVariants(name, variants, mc):
         gen.Add(gen2)
         extractedGenHistos[v] = gen
 
-    hmax = max([h.GetMaximum() for h in extractedGenHistos.itervalues()])*1.07
+    #hmax = max([h.GetMaximum() for h in extractedGenHistos.itervalues()])*1.07
+    hmax =     3200000
+    if "mn" in name:
+        hmax = 2600000
+    
+
     first = True
     colors = [46, 8, 9]
     cnt = 0
