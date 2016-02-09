@@ -477,6 +477,8 @@ class DrawPlots():
 
     @staticmethod
     def toPDF(c, filename):
+        print "Note: toPDF method disabled to makes things faster. Reenable it when doing final plots"  
+        return
         if not filename.endswith(".pdf"):
             raise Exception("File with pdf extension expected")
 
