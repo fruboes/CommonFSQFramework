@@ -111,6 +111,7 @@ def main():
     parser.add_option("-n", "--normalization",   action="store", dest="normalization", type="string", \
                                 help="how should I normalize the plots?")
     parser.add_option("-b", "--normalizeToBinWidth",   action="store_true", dest="normalizeToBinWidth")
+    parser.add_option("-j", "--justBottom",   action="store_true", dest="justBottom")
     parser.add_option("-s", type="float", dest="scaleExtra")   
 
     (options, args) = parser.parse_args()
@@ -121,6 +122,11 @@ def main():
     normalizeToBinWidth = False
     if options.normalizeToBinWidth:
         normalizeToBinWidth = True
+
+    justBottom = False
+    if options.justBottom:
+        justBottom = True
+
 
     if not options.variant:
         print "Provide analysis variant"
@@ -425,18 +431,18 @@ def main():
     for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
         maxima.append(t.GetMinimum())
 
-    c = ROOT.TCanvas()
-
-    c.Divide(1,2)
-    c.cd(1)
     split = 0.2
     margin = 0.005
-    ROOT.gPad.SetPad(.005, split+margin, .995, .995)
-    c.cd(2)
-    ROOT.gPad.SetPad(.005, .005, .995, split)
-    c.cd(1)
 
+    c = ROOT.TCanvas()
+    c.Divide(1,2)
+    c.cd(1)
+    ROOT.gPad.SetPad(margin, split+margin, 1.-margin, 1. - margin)
+    c.cd(2)
+    ROOT.gPad.SetPad(margin, margin, 1.-margin, split)
+    c.cd(1)
     ROOT.gPad.SetTopMargin(0.1)
+
     #c.SetRightMargin(0.07)
     central.SetMaximum(max(maxima)*1.05)
     #unc.SetFillColor(17);
@@ -510,15 +516,28 @@ def main():
     legend.AddEntry(hej, DrawMNPlots.prettyMCName("hej"), "l")
     legend.Draw("SAME")    
 
-    c.cd(2)
-    ROOT.gPad.SetTopMargin(0.)
+    
+    if justBottom:
+        ccJb = ROOT.TCanvas()
+        ROOT.gPad.SetPad(margin, margin, 1.-margin, 1.-margin)
+        ccJb.SetCanvasSize(ccJb.GetWw(), int(ccJb.GetWh()*(split+2.*margin)))
+        ROOT.gPad.SetTopMargin(margin*4.)
+        ccJb.cd()
+    else:
+        c.cd(2)
+        ROOT.gPad.SetTopMargin(0.)
     ROOT.gPad.SetBottomMargin(0.4)
-    frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0, central.GetXaxis().GetXmax(), 3)
+    frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0, central.GetXaxis().GetXmax(), 3.)
     DrawPlots.uniformFont(frame)
     frame.GetYaxis().SetNdivisions(505)
     frame.GetYaxis().SetTitle("#frac{MC}{data}")
-    frame.GetYaxis().SetTitleOffset(2.2)
-    frame.GetXaxis().SetTitleOffset(5)
+ 
+    if justBottom:
+        print "XXX"
+        frame.GetYaxis().SetTitleOffset(0.47)
+    else:   
+        frame.GetYaxis().SetTitleOffset(2.2)
+        frame.GetXaxis().SetTitleOffset(5)
     frame.GetXaxis().SetTitle(central.GetXaxis().GetTitle())
     #frame.GetXaxis().SetRangeUser(5,8)
 
@@ -601,18 +620,22 @@ def main():
 
     frame.Draw("AXIS SAME")
 
-    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
-    c.Print(oodir+"/mergedUnfolded_{}.png".format(options.normalization))
-    c.cd(1)
-    ROOT.gPad.SetLogy()
-    central.SetMaximum(max(maxima)*1.5)
-    central.SetMinimum(min(minima)*0.7)
-    legend.SetX1NDC(0.02 + ROOT.gPad.GetLeftMargin())
-    legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
-    legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
-    legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
-    c.Print(oodir+"/mergedUnfolded_{}_log.png".format(options.normalization))
-    DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
+    if justBottom:
+        DrawMNPlots.toPDF(ccJb,  oodir+"/mergedUnfolded_JB_{}.pdf".format(options.normalization))
+        ccJb.Print(oodir+"/mergedUnfolded_JB_{}.png".format(options.normalization))
+    else:
+        DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}.pdf".format(options.normalization))
+        c.Print(oodir+"/mergedUnfolded_{}.png".format(options.normalization))
+        c.cd(1)
+        ROOT.gPad.SetLogy()
+        central.SetMaximum(max(maxima)*1.5)
+        central.SetMinimum(min(minima)*0.7)
+        legend.SetX1NDC(0.02 + ROOT.gPad.GetLeftMargin())
+        legend.SetX2NDC(0.02 + ROOT.gPad.GetLeftMargin()+legendWidth)
+        legend.SetY1NDC(0.02 + ROOT.gPad.GetBottomMargin())
+        legend.SetY2NDC(0.02 + ROOT.gPad.GetBottomMargin()+legendHeight)
+        c.Print(oodir+"/mergedUnfolded_{}_log.png".format(options.normalization))
+        DrawMNPlots.toPDF(c,  oodir+"/mergedUnfolded_{}_log.pdf".format(options.normalization))
 
 
     # rivet export
