@@ -2,7 +2,21 @@
 import ROOT
 from ROOT import gRandom,TCanvas,TH1F, TPad
 
-def zoom(todo, x1=0.12,y1=0.6,x2=0.4, y2=0.89, store=[]):
+def zoom(canvas, minx, maxx, todo=None, ignore=None, x1=0.12,y1=0.6,x2=0.4, y2=0.89, store=[]):
+    if todo == None:
+       todo = []
+       for o in canvas.GetListOfPrimitives():
+            isOK=True
+            if ignore:
+                className = o.ClassName()
+                for i in ignore:
+                     if className.startswith(i):
+                        isOK=False
+
+            if isOK:
+                print "Appending", o.GetName()
+                todo.append(o)
+
     aPad = TPad("zoom","", x1,y1,x2,y2)
     store.append(aPad)
     #ROOT.SetOwnership(aPad, False) 
@@ -11,10 +25,10 @@ def zoom(todo, x1=0.12,y1=0.6,x2=0.4, y2=0.89, store=[]):
     clones = []
     store.append(clones)
     for t in todo:
-       clones.append(hpx.Clone())   
+       clones.append(t.Clone())   
        #ROOT.SetOwnership(clonesaPad, False) 
        if len(clones)==1:
-          clones[-1].GetXaxis().SetRangeUser(-1,1)
+          clones[-1].GetXaxis().SetRangeUser(minx,maxx)
           clones[-1].Draw()
        else:
           clones[-1].Draw("SAME")
@@ -30,8 +44,8 @@ for i in xrange(25000):
     hpx.Fill(px)
 
 hpx.Draw()
-todo = [hpx]
-zoom(todo)
+zoom(c1, -1,1)
+#zoom(c1, ignore=["TH1"])
 c1.Update()
 
 
