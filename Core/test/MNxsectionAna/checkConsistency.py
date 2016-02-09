@@ -46,7 +46,7 @@ for s in sample2type2cnt:
     if len(cntsSet)>1 or len(cntsSet)==1 and list(cntsSet)[0]==0:
         print "Problem: ", s, " ".join(map(str,cntsSet))
         for tt in sample2type2cnt[s]:
-            print "    ",tt, sample2type2cnt[s][tt], cnts.count(sample2type2cnt[s][tt])
+            print "    ",tt, sample2type2cnt[s][tt], cnts.count(sample2type2cnt[s][tt]), s
     else:
         print "All ok with", s, "-", list(cntsSet)[0], "events"
 
