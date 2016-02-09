@@ -198,6 +198,7 @@ class DrawMNPlots(DrawPlots):
         xLabels["ptSublead"] = "p_{T}^{subleading jet}"+gev
         xLabels["ptLead"] = "p_{T}^{leading jet}"+gev
         xLabels["vtx"] = "N_{good vertices}"
+        xLabels["vtxNoPUW"] = "N_{good vertices}^{no pu-reweighing}"
         return xLabels
 
     @staticmethod
