@@ -73,7 +73,7 @@ def vary(histo):
         raise Exception("vary: unsupported object {} {}".format(histo.ClassName(), histo.GetName()))
 
 
-def doUnfold(measured, rooresponse, nIter = None, doChi2=False, action = None):
+def doUnfold(measured, rooresponse, nIter = None, doChi2=False, action = None, unfoldingType="basic"):
     global optionsReg
     if nIter == None:
         nIter = optionsReg["unfNIter"]
@@ -97,7 +97,12 @@ def doUnfold(measured, rooresponse, nIter = None, doChi2=False, action = None):
         rooresponse.Hmeasured().Add(rooresponse.Hfakes(), -1)
         rooresponse.Hfakes().Add(rooresponse.Hfakes(), -1)
 
-    unfold = ROOT.RooUnfoldBayes(rooresponse, measured, nIter)
+    if unfoldingType=="basic":
+        unfold = ROOT.RooUnfoldBayes(rooresponse, measured, nIter)
+    elif unfoldingType=="inv":
+        unfold = ROOT.RooUnfoldInvert(rooresponse, measured)
+    elif unfoldingType=="svd":
+        unfold = ROOT.RooUnfoldSvd(rooresponse, measured, nIter)
 
     errorTreatment = 1 
     #errorTreatment = 3
@@ -106,6 +111,7 @@ def doUnfold(measured, rooresponse, nIter = None, doChi2=False, action = None):
 
     #chi2 = hReco.Chi2Test(rooresponse.Htruth(), "WW CHI2/NDF")
     chi2 = 0.
+
     if doChi2:
         #print "XXX"
         #os.system("echo " + measured.GetName() + " > tt.txt")
@@ -345,12 +351,22 @@ def unfold(action, infileName):
                 odirROOTfile.WriteTObject(hReco, rawName)
 
             # perform chi2 vs nIter scan (doesnt affect the final result
+            #chi2type = "basic"
+            #chi2type = "svd"
+            chi2type = "inv"
             if "Data" not in action and "central" in variation:
                 scanName = "chi2scan"+rawName
                 hScan = ROOT.TH1F(scanName, scanName+";iterations;#chi^{2}", 8, 0.5, 8.5)
                 hScan.GetYaxis().SetTitleOffset(1.8)
-                for i in xrange(1,9):
-                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i, doChi2=True, action = action)[1]
+                iterMin = 2
+                iterMax = 9
+                if chi2type == "svd":
+                    iterMin = 2
+                elif chi2type == "inv":
+                    iterMax = 2
+
+                for i in xrange(iterMin,iterMax):
+                    chi2 = doUnfold(histo.Clone(), histos[baseMC][r].Clone(), i, doChi2=True, action = action, unfoldingType = chi2type)[1]
                     iBin = hScan.FindBin(i)
                     hScan.SetBinContent(iBin, chi2)
                 canv = ROOT.TCanvas()
@@ -400,8 +416,14 @@ def unfold(action, infileName):
                 extra["line1"]= "\\text{"+extra2+"}"
 
                 DrawMNPlots.banner(extra)
-                canv.Print(optionsReg["odir"]+"/chi2/{}_{}.png".format(action,scanName))
-                DrawMNPlots.toPDF(canv, optionsReg["odir"]+"/chi2/{}_{}.pdf".format(action,scanName))
+                if chi2type == "basic":
+                    chi2dir = "chi2"
+                elif chi2type == "svd":
+                    chi2dir = "chi2svd"
+                elif chi2type == "inv":
+                    chi2dir = "chi2inv"
+                canv.Print(optionsReg["odir"]+"/" +chi2dir+"/{}_{}.png".format(action,scanName))
+                DrawMNPlots.toPDF(canv, optionsReg["odir"]+"/"+chi2dir+"/{}_{}.pdf".format(action,scanName))
 
             # now - toyMC approac to limited MC statistics
             #todo = ["response", "fakes", "truth", "measured"]
@@ -599,6 +621,8 @@ def main():
     odir = "~/tmp/unfolded_{}/".format(options.variant)
     os.system("mkdir -p "+odir)
     os.system("mkdir -p "+odir+"/chi2")
+    os.system("mkdir -p "+odir+"/chi2svd")
+    os.system("mkdir -p "+odir+"/chi2inv")
     optionsReg["odir"] = odir
 
     #possibleActions = ["pythiaOnPythia",  "herwigOnPythia", "pythiaOnHerwig", "herwigOnHerwig"]
