@@ -67,14 +67,17 @@ def getExtra(variant, isSim = False, extraSplit = False, lumiVal = None):
     if isSim:
         extra["insteadOfPreliminary"] = "simulations"
     else:
-        extra["insteadOfPreliminary"] = "preliminary"
+        extra["insteadOfPreliminary"] = "Preliminary"
 
+    print "Disabling lumi drawing via banner"
+    '''
     if not isSim:
         #extra[nextFreeLine(extra)] = "5.36\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
         if not lumiVal:
             extra[nextFreeLine(extra)] = "5.4\,\\mathrm{pb}^{-1}\,(7\,\\mathrm{TeV})"
         else:
             extra[nextFreeLine(extra)] = lumiVal + "\,(7\,\\mathrm{TeV})"
+    '''
 
     cur = nextFreeLine(extra)
     extra[cur] = "\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
@@ -457,7 +460,6 @@ def main():
     central.GetYaxis().SetTitleOffset(2.2)
     central.GetXaxis().SetTitleOffset(1.2)
     unc.Draw("2SAME")
-    central.Draw("SAME")
     central.SetMarkerStyle(20)
     central.SetMarkerSize(1)
 
@@ -476,8 +478,27 @@ def main():
 
     print DrawMNPlots.banner(getExtra(options.variant))
 
+    tl = ROOT.TLatex()
+    tl.SetNDC()
+    #latexCMS.SetTextFont(42) # ok see, https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.C
+    #tl.SetTextFont(61) # kills roots tlatex # ok see, https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.C
+    tl.SetTextAlign(31) # ok!, cmsTextFond
+    tl.SetTextSize(0.05)
+
+    xxxt = ROOT.gPad.GetTopMargin()
+    xxxl = ROOT.gPad.GetLeftMargin()
+    xxxr = ROOT.gPad.GetRightMargin()
+    print "AAAA", xxxt, xxxt
+    tl.DrawLatex(1-xxxr,1-xxxt*0.9, "#bf{5.4 pb^{-1} (7 TeV)}")
+    #print labels["lumi"]
+
+
     hej.Draw("SAME HIST")
     powheg.Draw("SAME HIST")
+
+    # note: draw this as last plot!
+    central.Draw("SAME")
+
 
     hej.SetLineWidth(3)
     hej.SetLineColor(8)
@@ -506,8 +527,8 @@ def main():
     legend = ROOT.TLegend(legendX1, ROOT.gPad.GetBottomMargin()+0.1, \
                           legendX2, ROOT.gPad.GetBottomMargin()+0.1+legendHeight  )
     legend.SetFillColor(0)
-    legend.AddEntry(central, "data", "pel")
-    legend.AddEntry(unc, "syst. unc.", "f")
+    legend.AddEntry(central, "Data", "pel")
+    legend.AddEntry(unc, "Syst. unc.", "f")
     #genHistoHerwig.SetLineStyle(9)
 
     legend.AddEntry(genHistoHerwig, DrawMNPlots.prettyMCName("herwig"), "l")
@@ -597,7 +618,6 @@ def main():
 
     centralRatio = central.Clone()
     centralRatio.Divide(central)
-    centralRatio.Draw("SAME")
 
     herwigRatio = genHistoHerwig.Clone()
     herwigRatio.Divide(central)
@@ -615,6 +635,9 @@ def main():
     pythiaRatio.Draw("SAME L")
     powhegRatio.Draw("SAME L")
     hejRatio.Draw("SAME L")
+
+    # draw central ratio as the last one!
+    centralRatio.Draw("SAME")
 
 
 
