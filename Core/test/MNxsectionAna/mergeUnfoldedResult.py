@@ -67,7 +67,9 @@ def getExtra(variant, isSim = False, extraSplit = False, lumiVal = None):
     if isSim:
         extra["insteadOfPreliminary"] = "simulations"
     else:
-        extra["insteadOfPreliminary"] = "Preliminary"
+        print "Preliminary disabled"
+        #extra["insteadOfPreliminary"] = "Preliminary"
+        extra["insteadOfPreliminary"] = None
 
     print "Disabling lumi drawing via banner"
     '''
@@ -324,7 +326,8 @@ def main():
     latexCMS.DrawLatex( 1-cur.GetRightMargin(), 0.15, labels["line0"]+norm)
     latexCMS.SetTextAlign(11) 
     #latexCMS.DrawLatex( 0.08, 0.15, "\\mathrm{CMS}\,"+labels["preliminary"])
-    latexCMS.DrawLatex( 0.025, 0.15, "\\mathrm{CMS}\,"+labels["insteadOfPreliminary"])
+    if labels["insteadOfPreliminary"]:
+        latexCMS.DrawLatex( 0.025, 0.15, "\\mathrm{CMS}\,"+labels["insteadOfPreliminary"])
 
     cur.Update()
 
@@ -481,6 +484,7 @@ def main():
     tl = ROOT.TLatex()
     tl.SetNDC()
     #latexCMS.SetTextFont(42) # ok see, https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.C
+    print "Note: unable to draw with default font"
     #tl.SetTextFont(61) # kills roots tlatex # ok see, https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.C
     tl.SetTextAlign(31) # ok!, cmsTextFond
     tl.SetTextSize(0.05)
@@ -489,7 +493,7 @@ def main():
     xxxl = ROOT.gPad.GetLeftMargin()
     xxxr = ROOT.gPad.GetRightMargin()
     print "AAAA", xxxt, xxxt
-    tl.DrawLatex(1-xxxr,1-xxxt*0.9, "#bf{5.4 pb^{-1} (7 TeV)}")
+    tl.DrawLatex(1-xxxr,1-xxxt*0.85, "#bf{5.4 pb^{-1} (7 TeV)}") # bf in order to turn off bf...
     #print labels["lumi"]
 
 

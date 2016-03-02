@@ -106,6 +106,8 @@ class DrawMNPlots(DrawPlots):
         ret = {}
         latexCMS = ROOT.TLatex()
         latexCMS.SetNDC()
+        # consistent with
+        # https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.h
         latexCMS.SetTextFont(61)
         latexCMS.SetTextAlign(31) 
         cmsTextSize      = 0.75
@@ -158,6 +160,7 @@ class DrawMNPlots(DrawPlots):
             latexCMS.DrawLatex( posX, 1-t-offY, text)
 
 
+        # note: font consistent with https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.h
         latexCMS.SetTextFont(52)
         latexCMS.SetTextSize(t*cmsTextSize*0.6)
 
@@ -168,6 +171,8 @@ class DrawMNPlots(DrawPlots):
             text = extra["insteadOfPreliminary"]
 
         ret["preliminary"] = text
+        hasPreliminary = text != None
+
         if draw and text != None:
             latexCMS.DrawLatex(posX, 1-t-offY, text)
 
@@ -175,8 +180,12 @@ class DrawMNPlots(DrawPlots):
             name = "line"+str(i)
             if name not in extra: continue
             cmsTextSize      = 0.4
-            latexCMS.SetTextSize(t*cmsTextSize*0.6)
-            offY = 0.20+(i)*0.035
+            latexCMS.SetTextSize(t*cmsTextSize*0.8) # was: 0.6
+            offY = (i)*0.046  # 0.035 -> 0.046
+            if hasPreliminary:
+                offY += 0.20
+            else:
+                offY += 0.15
             latexCMS.DrawLatex(posX, 1-t-offY, extra[name])
 
 
