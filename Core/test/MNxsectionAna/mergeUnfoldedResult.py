@@ -82,14 +82,15 @@ def getExtra(variant, isSim = False, extraSplit = False, lumiVal = None):
     '''
 
     cur = nextFreeLine(extra)
-    extra[cur] = "\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
-    if not extraSplit:
-        extra[cur] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
-    else:
-        cur = nextFreeLine(extra)
-        extra[cur] = "\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
     if variant.endswith("Window"):
-        extra[nextFreeLine(extra)] = ",\,\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
+        extra[nextFreeLine(extra)] = "\\mathrm{"+str(j1t)+"\,GeV<p^{jet1,jet2}_T<"+str(j2t)+"\,GeV}"
+    else:
+        extra[cur] = "\\mathrm{p^{jet1}_T>"+str(j1t)+"\,GeV}" 
+        if not extraSplit:
+            extra[cur] += ",\,\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
+        else:
+            cur = nextFreeLine(extra)
+            extra[cur] = "\\mathrm{p^{jet2}_T>"+str(j2t)+"\,GeV}"
 
     #extra["bottomLeft"] = "Inclusive"
     #if variant.startswith("MN"):
@@ -297,8 +298,8 @@ def main():
     cc.Divide(1,2)
     cc.cd(1)
     split = 0.9
-    margin = 0.005
-    ROOT.gPad.SetPad(.005, split+margin, .995, .995)
+    margin = 0.01
+    ROOT.gPad.SetPad(.005, split, .995, .995)
     cc.cd(2)
     ROOT.gPad.SetPad(.005, .005, .995, split)
     cur=cc.cd(1)
@@ -446,6 +447,7 @@ def main():
     ROOT.gPad.SetPad(margin, split+margin, 1.-margin, 1. - margin)
     c.cd(2)
     ROOT.gPad.SetPad(margin, margin, 1.-margin, split)
+    ROOT.gPad.SetTopMargin(0.1)
     c.cd(1)
     ROOT.gPad.SetTopMargin(0.1)
 
@@ -546,16 +548,35 @@ def main():
         ccJb = ROOT.TCanvas()
         ROOT.gPad.SetPad(margin, margin, 1.-margin, 1.-margin)
         ccJb.SetCanvasSize(ccJb.GetWw(), int(ccJb.GetWh()*(split+2.*margin)))
-        ROOT.gPad.SetTopMargin(margin*4.)
+        ROOT.gPad.SetTopMargin(0.1)
         ccJb.cd()
     else:
         c.cd(2)
-        ROOT.gPad.SetTopMargin(0.)
+        ROOT.gPad.SetTopMargin(0.1)
     ROOT.gPad.SetBottomMargin(0.4)
     frame = ROOT.gPad.DrawFrame(central.GetXaxis().GetXmin(), 0, central.GetXaxis().GetXmax(), 3.)
     DrawPlots.uniformFont(frame)
     frame.GetYaxis().SetNdivisions(505)
-    frame.GetYaxis().SetTitle("#frac{MC}{data}")
+
+    if options.normalization == "xs":
+        extraLabel = "#scale[0.6]{Cross section comparison}"
+    else:
+        extraLabel = "#scale[0.6]{Shape comparison}"
+
+    tl = ROOT.TLatex()
+    #tl.SetNDC()
+    #tl.SetTextFont(61) # kills roots tlatex # ok see, https://ghm.web.cern.ch/ghm/plots/MacroExample/CMS_lumi.C
+    #tl.SetTextAlign(31) # ok!, cmsTextFond
+    tl.SetTextSize(0.225)
+    tl.SetTextFont(52)
+
+
+    #tl.DrawLatex(2*xxxl,1-xxxt*4., "#bf{"+extraLabel+"}") # bf in order to turn off bf...
+    tl.DrawLatex(1.5, 2.2, "#it{"+extraLabel+"}") # bf in order to turn off bf...
+    #print labels["lumi"]
+
+
+    frame.GetYaxis().SetTitle("#frac{MC}{data} ")
  
     if justBottom:
         print "XXX"
