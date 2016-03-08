@@ -249,7 +249,8 @@ def main():
         raise Exception("Error: {} central histo(s) found: ".format(len(central))+ " ".join([ h.GetName() for h in central  ]))
     central = central[0]
     central.GetXaxis().SetTitle("#Delta#eta")
-    unit = "[pb]"
+    #unit = "[pb]"
+    unit = "[#mub]"
     oneOverN = ""
     if options.normalization == "area":
         #unit = "[a.u.]"
@@ -425,6 +426,11 @@ def main():
     rivetName = getRivetName(options.variant, options.normalization)
     hej =  getHistoFromYoda("fromRivet/hej_hepmc-jets-jetptmin=25-extraptmin=20-CT10nlo_Job_merged.yoda", rivetName)
     powheg = getHistoFromYoda("fromRivet/powheg-jets-sqrts=7000-kt5-herapdf-CUETP8-herapdf-P0-rivet2_merged.yoda", rivetName)
+
+
+    print "Danger! Scaling units!! Make sure its consistent with sample def"
+    powheg.Scale(1e-6)
+    hej.Scale(1e-6)
 
     maxima = []
     maxima.append(uncResult["max"])
