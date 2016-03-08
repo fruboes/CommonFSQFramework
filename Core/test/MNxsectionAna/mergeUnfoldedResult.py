@@ -352,7 +352,12 @@ def main():
     prettyNames["pu"] = "PU"
     prettyNames["toyMC"] = "MC stat."
 
+
+    header = "$\Delta\eta$  & $\sigma [\mu b]$ "
+
+    latexdata = {}
     for i,v in enumerate(todoVar):
+        header += " & " + prettyNames[v]
         yUp = array('d')
         yDown = array('d')
         x = array('d')
@@ -360,12 +365,30 @@ def main():
         xDown = array('d')
         xUp = array('d')
         padsCC.cd(i+1)
-        print i,v
         for iPoint in xrange(uncertaintySplitUp[v].GetN()):
+            #print type(uncertaintySplitUp[v])
             totalUp = uncertaintySplitUp["total"].GetErrorYhigh(iPoint)
             totalDown = uncertaintySplitUp["total"].GetErrorYlow(iPoint)
             partUp = uncertaintySplitUp[v].GetErrorYhigh(iPoint)
             partDown = uncertaintySplitUp[v].GetErrorYlow(iPoint)
+ 
+
+            if iPoint == 0 or iPoint == 13:           
+                latexdata.setdefault(iPoint,{})
+                binCenter =  uncertaintySplitUp["total"].GetX()[iPoint]
+                lowEdge =    binCenter-uncertaintySplitUp["total"].GetErrorXlow(iPoint)
+                highEdge =   binCenter+uncertaintySplitUp["total"].GetErrorXhigh(iPoint)
+                cen = uncertaintySplitUp["total"].GetY()[iPoint]
+                #singlerow = "{}...{} & ${}^{{ {} }}$ "
+                latexdata[iPoint]["edgeL"] = lowEdge
+                latexdata[iPoint]["edgeH"] = highEdge
+                latexdata[iPoint]["xs"] = cen
+                latexdata[iPoint]["totUp"] = totalUp
+                latexdata[iPoint]["totDown"] = totalDown
+                latexdata[iPoint][v+"Up"] = partUp
+                latexdata[iPoint][v+"Down"] = partDown
+                #print cen, "|", totalUp, totalDown, "|", partUp, partDown, v
+
             #rUp, rDown = (1.,1.)
             rUp, rDown = (0.,0.)
             if totalUp > 0: rUp = partUp/totalUp
@@ -399,6 +422,35 @@ def main():
         #uncertaintySplitUp[v].Draw("2SAME")
         #uncertaintySplitUp[v].Draw("A2")
         #print i,v
+
+
+    outtex = []
+    header += "\\\\"
+    outtex.append("\\begin{tabular}[h]{|c|c|c|c|c|c|c|c|}")
+    outtex.append("\\hline")
+    outtex.append(header)
+    outtex.append("\\hline")
+
+    template = "{edgeL}...{edgeH} & $ {xs}_{{ -{totDown} }}^{{ +{totUp} }} $ & " + " & ".join(
+                            ["$_{{ -{"+x+"Up"+"} }}^{{ +{"+x+"Down"+"} }}$" for x in todoVar ] 
+                           ) + "\\\\"
+    for ieta in sorted(latexdata.keys()):
+        cur = latexdata[ieta]
+        xs  = cur["xs"]
+        roundfactor = int(round(max(-math.floor(math.log(xs,10)),0)))+2
+        for k in cur.keys():
+            if "edge" in k: continue
+            #print k, cur[k], roundfactor
+            cur[k] = str(round(cur[k],roundfactor))
+
+        #print "{edgeL}...{edgeH} & ${xs}_{{ -{totDown} }}^{{ +{totUp} }}  $".format(**cur)
+        outtex.append(template.format(**cur))
+    ##
+    outtex.append("\\hline")
+    outtex.append("\\end{tabular}")
+
+    with open( os.path.expanduser(oodir+"/unc_{}.tex".format(options.normalization)), "w") as texf:
+        texf.write("\n".join(outtex))
 
     cc.Print(oodir+"/unc_{}.png".format(options.normalization))
     DrawMNPlots.toPDF(cc, oodir+"/unc_{}.pdf".format(options.normalization))
