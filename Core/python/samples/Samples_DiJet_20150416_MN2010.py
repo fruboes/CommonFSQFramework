@@ -185,3 +185,25 @@ def fixLocalPaths(sam):
             #print sam[s]["pathTrees"]
         return sam
 sam = fixLocalPaths(sam)
+
+def fixLumi(sam):
+    factor = 1e6
+    for s in sam:
+        for k in sam[s]:
+            if "lumi" not in k and "XS" not in k: continue
+            val = sam[s][k]
+            if "crashMeMC" == val or "crashMe" == val or val == -1: continue
+            newVal = sam[s][k]
+            if k == "XS":
+                newVal /= factor
+            elif "lumi" in k:
+                newVal *= factor
+            else:
+                raise Exception("sample: Fix lumi")
+
+            sam[s][k] = newVal
+    return sam
+sam = fixLumi(sam)
+
+
+
