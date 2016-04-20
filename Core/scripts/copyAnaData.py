@@ -214,7 +214,13 @@ def fixPath(p):
 
 
 def main():
-    sampleList=CommonFSQFramework.Core.Util.getAnaDefinition("sam")
+    sampleList= CommonFSQFramework.Core.Util.getAnaDefinition("sam")
+    #sample=filter(lambda x: "to3000" in x, CommonFSQFramework.Core.Util.getAnaDefinition("sam"))[0]
+    #sampleList= {} 
+    #sampleList[sample]= CommonFSQFramework.Core.Util.getAnaDefinition("sam")[sample]
+
+    #print sampleList
+    #sys.exit()
 
     parser = OptionParser(usage="usage: %prog [options] filename",
                             version="%prog 1.0")
