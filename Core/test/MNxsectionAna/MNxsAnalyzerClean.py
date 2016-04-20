@@ -461,6 +461,19 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                             weight[shift] = weightPU*weightBase    
                             weightNoNorm[shift] = weightPU*weightBaseNoMCNorm    
 
+                    for w in [x for x in weight if not x.startswith("_pu")]: # killme
+                        histoName = w + topology
+                        # xxx
+                        if "jet15" in topology:
+                            if not allreadyfilledtrg_nonfb:
+                                self.hist["trgeff"+histoName].Fill(self.MC_jet15_triggerEff_cached, weight[w])
+                                allreadyfilledtrg_nonfb = True
+                        else:
+                            if not allreadyfilledtrg_fb:
+                                self.hist["trgeff"+histoName].Fill(self.MC_dj15fb_triggerEff_cached, weight[w])
+                                allreadyfilledtrg_fb = True
+
+
                     if not hasTrigger: continue
 
                     detaDet = self.variantFilter.xsVariable(j1, j2) # note: we should rename this...
@@ -474,15 +487,6 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                         self.hist["etaSublead"+histoName].Fill(ptSorted[1].eta(), weight[w])
                         self.hist["xsVsDeltaEta"+histoName].Fill(detaDet, weight[w])
                         self.hist["vtx"+histoName].Fill(self.fChain.ngoodVTX, weight[w])
-                        # xxx
-                        if "jet15" in topology:
-                            if not allreadyfilledtrg_nonfb:
-                                self.hist["trgeff"+histoName].Fill(self.MC_jet15_triggerEff_cached, weight[w])
-                                allreadyfilledtrg_nonfb = True
-                        else:
-                            if not allreadyfilledtrg_fb:
-                                self.hist["trgeff"+histoName].Fill(self.MC_dj15fb_triggerEff_cached, weight[w])
-                                allreadyfilledtrg_fb = True
                         if weightPU > 0:
                             self.hist["vtxNoPUW"+histoName].Fill(self.fChain.ngoodVTX, weight[w]/weightPU)
 
@@ -603,7 +607,7 @@ if __name__ == "__main__":
     # debug config:
     #'''
     sampleList = []
-    sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
+    #sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
     #sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
     
     #'''
@@ -617,6 +621,7 @@ if __name__ == "__main__":
     #maxFilesMC = 1
     #maxFilesData = 1
     #nWorkers = 12
+    #nWorkers = 30
     nWorkers = 32
     #maxFilesMC = 16
     #nWorkers = 12
