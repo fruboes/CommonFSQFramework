@@ -15,6 +15,7 @@ import pickle
 import distutils.spawn
 
 def validateRootFile(fname, q):
+    #print "Trying", fname
     rootFile = ROOT.TFile.Open(fname,"r")
     infoHisto = rootFile.Get("infoHisto/cntHisto")
     ret = {}
@@ -41,7 +42,7 @@ def validateRootFiles(fileListUnvalidated, maxFiles=None, quiet = False):
     fileCnt = 0
     threads = {}
     goodFiles = 0
-    maxThreads= 12
+    maxThreads= 6
     fileList = []
     evCnt = 0
     evCntSeenByTreeProducers = 0
@@ -225,6 +226,7 @@ def getTreeFilesAndNormalizations(maxFilesMC = None, maxFilesData = None, quiet 
 
                         #targetFile = targetDir + "/" + fname
                         fileListUnvalidated.add(localROOTPrefix+lfn)
+                        #print "Adding ", localROOTPrefix+lfn
 
                     if lastSize !=  len(fileListUnvalidated):
                         lastSize = len(fileListUnvalidated)
