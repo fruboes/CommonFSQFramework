@@ -32,6 +32,7 @@ for f in glob.glob("*.root"):
     except:
         print "Some problem with", anaType, sample
 
+print sample2type2cnt
 
 allAnaTypes = set(reduce(list.__add__, [sample2type2cnt[s].keys() for s in sample2type2cnt]))
 #print allAnaTypes
