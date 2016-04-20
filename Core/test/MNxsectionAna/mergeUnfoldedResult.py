@@ -353,7 +353,7 @@ def main():
     prettyNames["toyMC"] = "MC stat."
 
 
-    header = "$\Delta\eta$  & $\sigma [\mu b]$ "
+    header = "% ZZ $\Delta\eta$  & $\sigma [\mu b]$ "
 
     latexdata = {}
     for i,v in enumerate(todoVar):
@@ -432,19 +432,51 @@ def main():
     outtex.append("\\hline")
 
     template = "{edgeL}...{edgeH} & $ {xs}_{{ -{totDown} }}^{{ +{totUp} }} $ & " + " & ".join(
-                            ["$_{{ -{"+x+"Up"+"} }}^{{ +{"+x+"Down"+"} }}$" for x in todoVar ] 
+                            ["$_{{ -{"+x+"Down"+"} }}^{{ +{"+x+"Up"+"} }}$" for x in todoVar ] 
                            ) + "\\\\"
     for ieta in sorted(latexdata.keys()):
         cur = latexdata[ieta]
         xs  = cur["xs"]
-        roundfactor = int(round(max(-math.floor(math.log(xs,10)),0)))+2
+        if xs > 1.:
+            roundfactor = int(round(max(-math.floor(math.log(xs,10)),0)))+2
+        else:
+            roundfactor = int(round(max(-math.floor(math.log(xs,10)),0)))+1
+
         for k in cur.keys():
             if "edge" in k: continue
             #print k, cur[k], roundfactor
+            '''
+            if "Up" in k:
+                refval = cur["totUp"]
+            elif "Down" in k:
+                refval = cur["totDown"]
+            elif "xs" == k:
+                pass
+            else:
+                raise Exception("xxxx ", k)
+            #print "XXX", cur[k], k
+            if cur[k]/float(refval) < 0.01:
+                cur[k] = "negligible"
+            else:
+                cur[k] = str(round(cur[k],roundfactor))
+            '''
             cur[k] = str(round(cur[k],roundfactor))
+            if cur[k] == "0.0":
+                cur[k] = "0."+'0'*roundfactor
 
+
+        expectedlen = max([len(cur[k]) for k in cur.keys() if "Up" in k or "Down" in k ])
+        for k in cur.keys():
+            if "Up" in k or "Down" in k:
+                curlen = len(cur[k])
+                if curlen!=expectedlen:
+                    cur[k]+="0"*(expectedlen-curlen)
+                
+
+        bad = "0."+'0'*roundfactor
+        expandedbad="$_{ -"+bad+" }^{ +"+bad+" }$"            
         #print "{edgeL}...{edgeH} & ${xs}_{{ -{totDown} }}^{{ +{totUp} }}  $".format(**cur)
-        outtex.append(template.format(**cur))
+        outtex.append(template.format(**cur).replace(expandedbad, "\it negligible") + " % ZZ {}_{}".format(options.variant, options.normalization) )
     ##
     outtex.append("\\hline")
     outtex.append("\\end{tabular}")
