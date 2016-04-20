@@ -198,6 +198,9 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                 self.hist["vtx"+t] =  ROOT.TH1F("vtx"+t,   "vtx"+t,  10, -0.5, 9.5)
                 self.hist["vtxNoPUW"+t] =  ROOT.TH1F("vtxNoPUW"+t,   "vtxNoPUW"+t,  10, -0.5, 9.5)
 
+                
+                self.hist["trgeff"+t] = ROOT.TH1F("trgeff"+t,   "trgeff"+t,  100, 0, 1)
+
                 if self.unfoldEnabled:
                     dummy = ROOT.TH2F("dummy"+t, "dummy"+t, len(binsNew)-1, binsNew, len(binsNew)-1, binsNew)
                     self.hist["response"+t]= ROOT.RooUnfoldResponse(self.hist["xsVsDeltaEta"+t], 
@@ -333,6 +336,7 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
             w1 = self.HLTMCWeighterJ15L1Raw.getWeight()
             w2 = self.HLTMCWeighterJ15Raw.getWeight()
             self.MC_jet15_triggerFired_cached = w1*w2 > rnd4eff
+            self.MC_jet15_triggerEff_cached = w1*w2
             return self.MC_jet15_triggerFired_cached
         elif case == "_dj15fb":
             if self.MC_dj15fb_triggerFired_cached == None and self.MC_jet15_triggerFired_cached == None:
@@ -348,6 +352,7 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
             w1 = self.HLTMCWeighterJ15FBL1Raw.getWeight()
             w2 = self.HLTMCWeighterJ15FBRaw.getWeight()
             self.MC_dj15fb_triggerFired_cached = w1*w2 > rnd4eff
+            self.MC_dj15fb_triggerEff_cached = w1*w2 
             return self.MC_dj15fb_triggerFired_cached
         else:
             raise Excecption("triggerFired: case not known: "+str(case))
@@ -376,6 +381,8 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
     def analyze(self):
         self.MC_jet15_triggerFired_cached = None
         self.MC_dj15fb_triggerFired_cached = None
+        self.MC_jet15_triggerEff_cached = None
+        self.MC_dj15fb_triggerEff_cached = None
 
         if self.fChain.ngoodVTX == 0: return
         self.jetGetter.newEvent(self.fChain)
@@ -419,6 +426,8 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                                                         if j.pt()>self.threshold and abs(j.eta()) < 4.7 ])
 
         for shift in self.todoShifts:
+            allreadyfilledtrg_fb = False
+            allreadyfilledtrg_nonfb = False
             matchedPairs = set()
             # todo: j.jetID() > 0.5
             goodRecoJets = self.variantFilter.filterCol([j for j in self.jetGetter.get(shift) \
@@ -465,6 +474,15 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                         self.hist["etaSublead"+histoName].Fill(ptSorted[1].eta(), weight[w])
                         self.hist["xsVsDeltaEta"+histoName].Fill(detaDet, weight[w])
                         self.hist["vtx"+histoName].Fill(self.fChain.ngoodVTX, weight[w])
+                        # xxx
+                        if "jet15" in topology:
+                            if not allreadyfilledtrg_nonfb:
+                                self.hist["trgeff"+histoName].Fill(self.MC_jet15_triggerEff_cached, weight[w])
+                                allreadyfilledtrg_nonfb = True
+                        else:
+                            if not allreadyfilledtrg_fb:
+                                self.hist["trgeff"+histoName].Fill(self.MC_dj15fb_triggerEff_cached, weight[w])
+                                allreadyfilledtrg_fb = True
                         if weightPU > 0:
                             self.hist["vtxNoPUW"+histoName].Fill(self.fChain.ngoodVTX, weight[w]/weightPU)
 
@@ -580,25 +598,26 @@ if __name__ == "__main__":
     sampleList = None
     maxFilesMC = None
     maxFilesData = None
-    nWorkers = 12
+    nWorkers = 25
 
     # debug config:
     #'''
     sampleList = []
     sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
-    sampleList.append("QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp")
-    sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
+    #sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
+    
     #'''
-    sampleList.append("Jet-Run2010B-Apr21ReReco-v1")
-    sampleList.append("JetMET-Run2010A-Apr21ReReco-v1")
-    sampleList.append("METFwd-Run2010B-Apr21ReReco-v1")
+    sampleList.append("QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp")
+    #sampleList.append("Jet-Run2010B-Apr21ReReco-v1")
+    #sampleList.append("JetMET-Run2010A-Apr21ReReco-v1")
+    #sampleList.append("METFwd-Run2010B-Apr21ReReco-v1")
     # '''
     # '''
     #maxFilesMC = 48
     #maxFilesMC = 1
     #maxFilesData = 1
     #nWorkers = 12
-    nWorkers = 34
+    nWorkers = 32
     #maxFilesMC = 16
     #nWorkers = 12
     #nWorkers = 10
