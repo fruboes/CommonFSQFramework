@@ -43,10 +43,20 @@ class PtBinning:
         return binsNew
 
 class BaseDijetAna:
+    def cf_ff_check(self, j1, j2): # in order to check how will the uncertainty behave
+        return True
+        e1 = abs(j1.eta())
+        e2 = abs(j2.eta())
+        #if max(e1,e2) < 3. : return False
+        #return True
+        return (e1>3 and e2>3 and j1.eta()*j2.eta()<0) or (e1<3 and e2<3) 
+
     def xsVariable(self, j1, j2):
         return abs(j1.eta()-j2.eta())
     def filterPair(self, j1, j2):
-        return True
+        return self.cf_ff_check(j1,j2)
+        #return True
+
     def filterCol(self, l):
         return l
     @staticmethod
@@ -70,7 +80,7 @@ class InclusiveBasic(BaseDijetAna, EtaBinning):
 
 class InclusiveAsym(BaseDijetAna, EtaBinning):
     def filterPair(self, j1, j2):
-        return max(j1.pt(), j2.pt()) > 45
+        return (max(j1.pt(), j2.pt()) > 45) and self.cf_ff_check(j1,j2)
 
     def filterCol(self, l):
         if len(l) < 2: return []
@@ -437,6 +447,7 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                 for i2 in xrange(i1+1, len(goodRecoJets)):
                     j1 = goodRecoJets[i1]
                     j2 = goodRecoJets[i2]
+
                     if not self.variantFilter.filterPair(j1, j2): continue
                     topology = self.topology(j1, j2)
                     weight = {}
@@ -461,17 +472,18 @@ class MNxsAnalyzerClean(CommonFSQFramework.Core.ExampleProofReader.ExampleProofR
                             weight[shift] = weightPU*weightBase    
                             weightNoNorm[shift] = weightPU*weightBaseNoMCNorm    
 
-                    for w in [x for x in weight if not x.startswith("_pu")]: # killme
-                        histoName = w + topology
-                        # xxx
-                        if "jet15" in topology:
-                            if not allreadyfilledtrg_nonfb:
-                                self.hist["trgeff"+histoName].Fill(self.MC_jet15_triggerEff_cached, weight[w])
-                                allreadyfilledtrg_nonfb = True
-                        else:
-                            if not allreadyfilledtrg_fb:
-                                self.hist["trgeff"+histoName].Fill(self.MC_dj15fb_triggerEff_cached, weight[w])
-                                allreadyfilledtrg_fb = True
+                    if not self.isData:
+                        for w in [x for x in weight if not x.startswith("_pu")]: # killme
+                            histoName = w + topology
+                            # xxx
+                            if "jet15" in topology:
+                                if not allreadyfilledtrg_nonfb:
+                                    self.hist["trgeff"+histoName].Fill(self.MC_jet15_triggerEff_cached, weight[w])
+                                    allreadyfilledtrg_nonfb = True
+                            else:
+                                if not allreadyfilledtrg_fb:
+                                    self.hist["trgeff"+histoName].Fill(self.MC_dj15fb_triggerEff_cached, weight[w])
+                                    allreadyfilledtrg_fb = True
 
 
                     if not hasTrigger: continue
@@ -607,14 +619,14 @@ if __name__ == "__main__":
     # debug config:
     #'''
     sampleList = []
-    #sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
-    #sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
+    sampleList= ["QCD_Pt-15to3000_TuneZ2star_Flat_HFshowerLibrary_7TeV_pythia6"]
     
     #'''
+    sampleList.append("JetMETTau-Run2010A-Apr21ReReco-v1")
     sampleList.append("QCD_Pt-15to1000_TuneEE3C_Flat_7TeV_herwigpp")
-    #sampleList.append("Jet-Run2010B-Apr21ReReco-v1")
-    #sampleList.append("JetMET-Run2010A-Apr21ReReco-v1")
-    #sampleList.append("METFwd-Run2010B-Apr21ReReco-v1")
+    sampleList.append("Jet-Run2010B-Apr21ReReco-v1")
+    sampleList.append("JetMET-Run2010A-Apr21ReReco-v1")
+    sampleList.append("METFwd-Run2010B-Apr21ReReco-v1")
     # '''
     # '''
     #maxFilesMC = 48
