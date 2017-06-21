@@ -8,7 +8,7 @@
 proc=32
 mem=100GB
 #proc=25
-#mem=100GB
+#mem=80GB
 
 echo "./do.py -c InclusiveBasic" | qsub  -V -l nodes=1:ppn=$proc -l mem=$mem -q local -d `pwd`
 echo "./do.py -c MNWindow" | qsub  -V -l nodes=1:ppn=$proc -l mem=$mem -q local -d `pwd`

@@ -15,12 +15,12 @@ todoCat = todoCatAll
 #todoCat = ["FWD11_002"]
 #todoCat = ["InclusiveBasic"]
 todoSteps = []
-#todoSteps.append("proof")
+todoSteps.append("proof")
 #todoSteps.append("hadd")
 #todoSteps.append("simpleMCplots")
 #todoSteps.append("draw")
 #todoSteps.append("unfold")
-todoSteps.append("merge")
+#todoSteps.append("merge")
 #todoSteps.append("rivetExport")
 
 from optparse import OptionParser

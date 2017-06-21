@@ -518,14 +518,16 @@ def main():
 
     maxima = []
     maxima.append(uncResult["max"])
-    for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
+    #for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
+    for t in [unc, central, genHistoHerwig, genHistoPythia]:
         maxima.append(t.GetMaximum())
 
 
 
     minima = []
     minima.append(uncResult["min"])
-    for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
+    #for t in [unc, central, genHistoHerwig, genHistoPythia, hej, powheg]:
+    for t in [unc, central, genHistoHerwig, genHistoPythia]:
         maxima.append(t.GetMinimum())
 
     split = 0.2
@@ -589,8 +591,8 @@ def main():
     #print labels["lumi"]
 
 
-    hej.Draw("SAME HIST")
-    powheg.Draw("SAME HIST")
+    #hej.Draw("SAME HIST")
+    #powheg.Draw("SAME HIST")
 
     # note: draw this as last plot!
     central.Draw("SAME")
@@ -629,8 +631,8 @@ def main():
 
     legend.AddEntry(genHistoHerwig, DrawMNPlots.prettyMCName("herwig"), "l")
     legend.AddEntry(genHistoPythia, DrawMNPlots.prettyMCName("pythia"), "l")
-    legend.AddEntry(powheg, DrawMNPlots.prettyMCName("powheg"), "l")
-    legend.AddEntry(hej, DrawMNPlots.prettyMCName("hej"), "l")
+    #legend.AddEntry(powheg, DrawMNPlots.prettyMCName("powheg"), "l")
+    #legend.AddEntry(hej, DrawMNPlots.prettyMCName("hej"), "l")
     legend.Draw("SAME")    
 
     
@@ -748,8 +750,8 @@ def main():
 
     herwigRatio.Draw("SAME L")
     pythiaRatio.Draw("SAME L")
-    powhegRatio.Draw("SAME L")
-    hejRatio.Draw("SAME L")
+    #powhegRatio.Draw("SAME L")
+    #hejRatio.Draw("SAME L")
 
     # draw central ratio as the last one!
     centralRatio.Draw("SAME")
